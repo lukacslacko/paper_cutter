@@ -41,8 +41,8 @@ header()
 n = 3
 hole = 3
 width = 10
-radius = 30
-angle = math.pi/3
+radius = 50
+angle = 0.762
 
 
 circle = 12
