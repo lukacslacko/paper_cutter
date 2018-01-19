@@ -38,11 +38,11 @@ def footer():
 
 header()
 
-n = 3
+n = 8
 hole = 3
 width = 10
-radius = 50
-angle = 0.762
+radius = 70
+angle = 0.435
 
 
 circle = 12
