@@ -41,26 +41,21 @@ header()
 n = 5
 hole = 3
 width = 10
-radius = 70
-angle = 0.468
-
+edge = 30
 
 circle = 12
 
-r = radius * math.asin(math.sqrt((1 - math.cos(angle)) / (1 - math.cos(2*math.pi/n))))
-y = width / (2 * math.tan(math.pi / n))
+r = edge / 2 / math.sin(math.pi / n)
 
 for i in range(n):
     a = 2*i*math.pi/n
-    rotline(width/2, y, width/2, r, a)
-    for p in range(circle):
-        rotline(width/2*math.cos(p*math.pi/circle), r + width/2*math.sin(p*math.pi/circle), 
-                width/2*math.cos((p+1)*math.pi/circle), r + width/2*math.sin((p+1)*math.pi/circle),
-                a)
+    rotline(-edge/2, r*math.cos(math.pi/n) + width/2, edge/2, r*math.cos(math.pi/n) + width/2, math.pi/n + a)
     for p in range(2*circle):
         rotline(hole/2*math.cos(p*math.pi/circle), r + hole/2*math.sin(p*math.pi/circle), 
                 hole/2*math.cos((p+1)*math.pi/circle), r + hole/2*math.sin((p+1)*math.pi/circle),
                 a)
-    rotline(-width/2, r, -width/2, y, a)
+        rotline(width/2*math.cos(p*math.pi/n/circle - math.pi/n + math.pi/2), r + width/2*math.sin(p*math.pi/n/circle - math.pi/n+ math.pi/2), 
+                width/2*math.cos((p+1)*math.pi/n/circle - math.pi/n+ math.pi/2), r + width/2*math.sin((p+1)*math.pi/n/circle - math.pi/n+ math.pi/2),
+                a)
 
 footer()
