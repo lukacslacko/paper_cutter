@@ -38,10 +38,10 @@ def footer():
 
 header()
 
-n = 5
+n = 7
 hole = 3
 width = 10
-edge = 30
+edge = 20
 
 circle = 12
 

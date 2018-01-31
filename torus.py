@@ -1,4 +1,7 @@
 import math
+import numpy as np
+
+shifty = 0
 
 def line(x1,y1,x2,y2):
   print(0)
@@ -8,11 +11,11 @@ def line(x1,y1,x2,y2):
   print(10)
   print(x1)
   print(20)
-  print(y1)
+  print(y1+shifty)
   print(11)
   print(x2)
   print(21)
-  print(y2)
+  print(y2+shifty)
 
 def rotx(x,y,a):
     return x*math.cos(a) - y*math.sin(a)
@@ -41,10 +44,11 @@ def footer():
 
 header()
 
-R = 80
-rho = 50
-n1 = 2
-n2 = 16
+R = 90
+rho = 60
+torus_alpha = 2/3
+n1 = 10
+n2 = 15
 
 hole = 3
 width = 10
@@ -53,16 +57,8 @@ circle = 12
 
 draw_holes = True
 
-def point(phi, delta):
-    return [(R + rho * math.cos(phi)) * math.cos(delta),
-            (R + rho * math.cos(phi)) * math.sin(delta),
-            rho * math.sin(phi)]
-
 def vect(p, q):
     return [q[i] - p[i] for i in range(3)]
-
-def summul(p, q, a):
-    return [p[i] + a * q[i] for i in range(3)]
 
 def dot(x, y):
     s = 0
@@ -70,73 +66,93 @@ def dot(x, y):
         s += x[i] * y[i]
     return s
 
-for i in range(4 * n1):
-    phi = (i * math.pi) / (2*n1)
-    a = [math.cos(phi), 0, math.sin(phi)]
-    b = [math.sin(phi), 0, -math.cos(phi)]
-    p = point(phi, 0)
+def veclen(v):
+    return math.sqrt(dot(v, v))
 
-    q1 = point(phi + math.pi / (6*n1), 2 * math.pi / n2)
-    v1 = vect(p, q1)
-    va1 = dot(v1, a)
-    w1 = summul(v1, a, -va1)
-    wb1 = dot(w1, b)
-    wabs1 = math.sqrt(dot(w1, w1))
-    alpha1 = math.acos(wb1 / wabs1)
-    vabs1 = math.sqrt(dot(v1, v1))
+def summul(p, q, a):
+    return [p[i] + a*q[i] for i in range(3)]
 
-    q2 = point(phi - math.pi / (6*n1), 2 * math.pi / n2)
-    v2 = vect(p, q2)
-    va2 = dot(v2, a)
-    w2 = summul(v2, a, -va2)
-    wb2 = dot(w2, b)
-    wabs2 = math.sqrt(dot(w2, w2))
-    alpha2 = math.acos(wb2 / wabs2)
-    vabs2 = math.sqrt(dot(v2, v2))
+def project_and_normalize(normal, point):
+    v = summul(point, normal, -dot(normal, point))
+    l = veclen(v)
+    return [v[i] / l for i in range(3)]
 
-    pp = point(phi + math.pi / (3*n1), 0)
-    ppp = vect(p, pp)
-    pppabs = math.sqrt(dot(ppp, ppp))
+def fold_point(center, normal, horiz, point):
+    v = vect(center, point)
+    vlen = veclen(v)
+    w = project_and_normalize(normal, v)
+    u = np.cross(horiz, normal)
+    x = dot(w, horiz)
+    y = dot(w, u)
+    return [x * vlen, y * vlen]
 
-    dy = i * rho * 3
+def fold_star_to_plane(center, normal, points):
+    nlen = veclen(normal)
+    n = [normal[i] / nlen for i in range(3)]
+    folded = {}
+    horiz = project_and_normalize(n, vect(center, points[0]))
+    for i in range(len(points)):
+        folded[i] = fold_point(center, n, horiz, points[i])
+    return [folded[i] for i in range(len(points))]
 
-    if draw_holes:
-        for c in range(circle):
-            u1 = 2 * math.pi * c / circle
-            u2 = u1 + 2 * math.pi / circle
-            x1 = hole / 2 * math.cos(u1)
-            y1 = hole / 2 * math.sin(u1)
-            x2 = hole / 2 * math.cos(u2)
-            y2 = hole / 2 * math.sin(u2)
-            rotlineshift(pppabs + x1, y1, pppabs + x2, y2, 0, 0, dy)
-            rotlineshift(pppabs + x1, y1, pppabs + x2, y2, math.pi, 0, dy)
-            rotlineshift(vabs1 + x1, y1, vabs1 + x2, y2, alpha1, 0, dy)
-            rotlineshift(vabs1 + x1, y1, vabs1 + x2, y2, -alpha1, 0, dy)
-            rotlineshift(vabs2 + x1, y1, vabs2 + x2, y2, alpha2, 0, dy)
-            rotlineshift(vabs2 + x1, y1, vabs2 + x2, y2, -alpha2, 0, dy)
-    else:
-        rotlineshift(0, 0, pppabs, 0, 0, 0, dy)
-        rotlineshift(0, 0, pppabs, 0, math.pi, 0, dy)
-        rotlineshift(0, 0, vabs1, 0, alpha1, 0, dy)
-        rotlineshift(0, 0, vabs1, 0, -alpha1, 0, dy)
-        rotlineshift(0, 0, vabs2, 0, alpha2, 0, dy)
-        rotlineshift(0, 0, vabs2, 0, -alpha2, 0, dy)
+def draw_holes(points):
+    for p in points:
+        for i in range(2*circle):
+            a = i * math.pi / circle
+            b = a + math.pi / circle
+            line(p[0] + hole/2*math.cos(a), p[1] + hole/2*math.sin(a), 
+                 p[0] + hole/2*math.cos(b), p[1] + hole/2*math.sin(b))
 
-#
-#r = radius * math.asin(math.sqrt((1 - math.cos(angle)) / (1 - math.cos(2*math.pi/n))))
-#y = width / (2 * math.tan(math.pi / n))
-#
-#for i in range(n):
-#    a = 2*i*math.pi/n
-#    rotline(width/2, y, width/2, r, a)
-#    for p in range(circle):
-#        rotline(width/2*math.cos(p*math.pi/circle), r + width/2*math.sin(p*math.pi/circle), 
-#                width/2*math.cos((p+1)*math.pi/circle), r + width/2*math.sin((p+1)*math.pi/circle),
-#                a)
-#    for p in range(2*circle):
-#        rotline(hole/2*math.cos(p*math.pi/circle), r + hole/2*math.sin(p*math.pi/circle), 
-#                hole/2*math.cos((p+1)*math.pi/circle), r + hole/2*math.sin((p+1)*math.pi/circle),
-#                a)
-#    rotline(-width/2, r, -width/2, y, a)
+def connect(p, q):
+    plen = math.sqrt(p[0]*p[0]+p[1]*p[1])
+    qlen = math.sqrt(q[0]*q[0]+q[1]*q[1])
+    a = [p[i]/plen for i in range(2)]
+    b = [q[i]/qlen for i in range(2)]
+    ab = a[0]*b[0]+a[1]*b[1]
+    alpha = (width/2)/math.sqrt(1-ab*ab)
+    t = [alpha*(a[0]+b[0]), alpha*(a[1]+b[1])]
+    beta = alpha * (1 + ab)
+    u = [t[0] - beta*b[0], t[1] - beta*b[1]]
+    v = [t[0] - beta*a[0], t[1] - beta*a[1]]
+    line(t[0],t[1], q[0]+u[0], q[1]+u[1])
+    line(t[0],t[1], p[0]+v[0], p[1]+v[1])
+    for i in range(circle):
+        x = i * math.pi / circle
+        y = x + math.pi / circle
+        line(q[0] + math.cos(x) * u[0] + math.sin(x) * b[0] * width/2,
+             q[1] + math.cos(x) * u[1] + math.sin(x) * b[1] * width/2,
+             q[0] + math.cos(y) * u[0] + math.sin(y) * b[0] * width/2,
+             q[1] + math.cos(y) * u[1] + math.sin(y) * b[1] * width/2)
+
+def draw_edge(points):
+    for i in range(len(points)):
+        j = (i+1) % len(points)
+        connect(points[i], points[j])
+
+def torus_point(R, rho, lat, lng):
+    return [math.cos(lng) * (R - rho*math.cos(lat)), 
+            (R - rho*math.cos(lat))*math.sin(lng), rho*math.sin(lat)]
+
+def torus_normal(R, rho, lat):
+    return [-math.cos(lat), 0, math.sin(lat)]
+
+def remap(lat):
+    return lat - math.asin(math.sin(lat)*torus_alpha)
+    #return lat
+
+for i in range(20):
+    dlat = math.pi / 10
+    dlng = math.pi / 10 * 2 / 3
+    lat = i * math.pi / 10
+    center = torus_point(R, rho, remap(lat), 0)
+    points = [torus_point(R, rho, remap(lat+2*dlat), dlng),
+              torus_point(R, rho, remap(lat+dlat), -2*dlng),
+              torus_point(R, rho, remap(lat-2*dlat), -dlng),
+              torus_point(R, rho, remap(lat-dlat), 2*dlng)]
+
+    a = fold_star_to_plane(center, torus_normal(R, rho, remap(lat)), points)
+    shifty = -i * 150
+    draw_holes(a)
+    draw_edge(a) 
 
 footer()

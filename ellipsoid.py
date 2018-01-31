@@ -16,7 +16,7 @@ def surface(p):
     return sq(p[0]/a)+sq(p[1]/b)+sq(p[2]/c)-1
 
 
-N = 17
+N = 35
 
 points = [random.random() - 0.5 for i in range(3*N)]
 
