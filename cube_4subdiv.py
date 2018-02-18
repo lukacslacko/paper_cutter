@@ -54,6 +54,18 @@ draw_holes = True
 def vect(p, q):
     return [q[i] - p[i] for i in range(3)]
 
+def comb(a, b, x):
+    return [a[i]*x + b[i]*(1-x) for i in range(3)]
+
+def mid(a, b):
+    return comb(a, b, 1/2)
+
+def mul(v, x):
+    return [v[i]*x for i in range(3)]
+
+def add(a, b, x):
+    return [a[i]+x*b[i] for i in range(3)]
+
 def dot(x, y):
     s = 0
     for i in range(3):
@@ -71,13 +83,6 @@ def project_and_normalize(normal, point):
     l = veclen(v)
     return [v[i] / l for i in range(3)]
 
-def sphere(x, y, z, R):
-    a = 0.7
-    xx = x - a * (x/z)*(1-x/z)*z
-    yy = y - a * (y/z)*(1-y/z)*z
-    r = veclen([xx, yy, z])/R
-    return [xx/r, yy/r, z/r]
-
 def fold_point(center, normal, horiz, point):
     v = vect(center, point)
     vlen = veclen(v)
@@ -87,9 +92,9 @@ def fold_point(center, normal, horiz, point):
     y = dot(w, u)
     return [x * vlen, y * vlen]
 
-def fold_star_to_plane(center, normal, points):
-    nlen = veclen(normal)
-    n = [normal[i] / nlen for i in range(3)]
+def fold_star_to_plane(center, points):
+    nlen = veclen(center)
+    n = [center[i] / nlen for i in range(3)]
     folded = {}
     horiz = project_and_normalize(n, vect(center, points[0]))
     for i in range(len(points)):
@@ -130,16 +135,46 @@ def draw_edge(points):
         j = (i+1) % len(points)
         connect(points[i], points[j])
 
-def square_face(size, dx, dy, R):
-    a = fold_star_to_plane(sphere(1+dx,1+dy,size,R), sphere(1+dx, 1+dy, size, 1), [sphere(dx,dy,size,R), sphere(2+dx,dy,size,R), sphere(2+dx,2+dy,size,R), sphere(dx,2+dy,size,R)])
+def proj(p, rad):
+    return mul(p, rad/veclen(p))
+
+def polygon(center, points, rad):
+    a = fold_star_to_plane(proj(center, rad), [proj(p, rad) for p in points])
     draw_holes(a)
     draw_edge(a)
 
-rad = 100
-square_face(4, 1, 1, rad)
-shifty -= 100
-square_face(4, 1, 3, rad)
-shifty -= 100
-square_face(4, 3, 3, rad)
+phi = (1 + math.sqrt(5)) / 2
+
+rad = 150
+p = mul([phi, -1, 0], rad)
+q = mul([phi, 1, 0], rad)
+r = mul([1, 0, phi], rad)
+s = mul([0, -phi, 1], rad)
+t = mul([0, -phi, -1], rad)
+u = mul([1, 0, -phi], rad)
+
+v = mul(vect(p, mid(q,r)), 1/5)
+w = mul(vect(r, mid(p,q)), -1/5)
+vs = mul(vect(p, mid(r,s)), 1/5)
+ws = mul(vect(s, mid(p,r)), -1/5)
+
+polygon(add(p, v, 3), 
+        [add(p, v, 4), add(add(p, v, 3), w, 1),
+         add(add(p, v, 2), w, 1), add(p, v, 2),
+         add(add(p, v, 3), w, -1), add(add(p, v, 4), w, -1)], rad)
+
+shifty -= rad/2
+
+polygon(p, [add(p, vect(p, mid(q,r)), 1/5),
+            add(p, vect(p, mid(r,s)), 1/5),
+            add(p, vect(p, mid(s,t)), 1/5),
+            add(p, vect(p, mid(t,u)), 1/5),
+            add(p, vect(p, mid(u,q)), 1/5)], rad)
+
+shifty -= rad/2
+
+polygon(add(add(p, v, 1), w, 1), 
+        [add(add(p, v, 2), w, 1), add(p, v, 2), add(p, v, 1),
+         add(p, vs, 1), add(p, vs, 2), add(add(p, vs, 3), ws, -1)], rad)
 
 footer()

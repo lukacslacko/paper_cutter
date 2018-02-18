@@ -76,16 +76,18 @@ def cut(y):
 
 def hole():
     r = 1.5/scale
-    for a in range(24):
-        x = a/12*pi
-        y = (a+1)/12*pi
-        line(r*cos(x),0.18+r*sin(x),r*cos(y),0.18+r*sin(y))
+    w = 0.15/scale
+    p=0.18
+    line(-w,p-r,w,p-r)
+    line(w,p-r,w,p+r)
+    line(w,p+r,-w,p+r)
+    line(-w,p+r,-w,p-r)
 
 header()
 maxz = 0
-ysteps = 20
+ysteps = 40
 for y in range(ysteps):
-    d=cut(0.7*y/ysteps)
+    d=cut(0.68*y/ysteps)
     hole()
     shiftx += 2.1*d[0]
     maxz = max(maxz, d[1])
