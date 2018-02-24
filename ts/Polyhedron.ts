@@ -15,11 +15,11 @@ class Polyhedron {
         heading.appendChild(this.content);
     }
 
-    public addPolygon(title: string, polygon: Polygon) {
+    public addPolygon(title: string, polygon: Polygon, num: number) {
         let current = this.paper.copy();
-        current.fill(polygon.render());
+        current.fill(polygon.render(), num);
         let page = document.createElement("div");
         this.content.appendChild(page);
-        current.addToDiv(title, page);
+        current.addToDiv(this.name, title, page);
     }
 }

@@ -8,6 +8,18 @@ class Polygon {
         normal.normalize(1);
     }
 
+    public static spherical(points: Point[], radius: number): Polygon {
+        let center = new Point(0, 0, 0);
+        for (let p of points) {
+            center.x += p.x / points.length;
+            center.y += p.y / points.length;
+            center.z += p.z / points.length;
+        }
+        let poly = new Polygon(center, center, points);
+        poly.projectToSphere(radius);
+        return poly;
+    }
+
     public projectToSphere(radius: number): void {
         this.center.normalize(radius);
         for (let p of this.points) {
