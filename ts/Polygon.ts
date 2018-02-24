@@ -36,11 +36,11 @@ class Polygon {
     }
 
     private foldToPlane(): PlanarPoint[] {
-        let folded = new PlanarPoint[this.points.length];
+        let folded = new Array<PlanarPoint>();
         let horizontal = 
             this.points[0].copy().project(this.normal).normalize(1);
         for (let i = 0; i < this.points.length; ++i) {
-            folded[i] = this.foldPoint(horizontal, this.points[i]);
+            folded.push(this.foldPoint(horizontal, this.points[i]));
         }
         return folded;
     }
@@ -139,6 +139,7 @@ class Point {
 class PlanarPoint {
     constructor(public x: number, public y: number) {}
 
+
     public copy(): PlanarPoint {
         return new PlanarPoint(this.x, this.y);
     }
@@ -155,6 +156,6 @@ class PlanarPoint {
     }
 
     public length(): number {
-        return Math.sqrt(this.length());
+        return Math.sqrt(this.dot(this));
     }
 }

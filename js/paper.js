@@ -165,10 +165,10 @@ var Polygon = /** @class */ (function () {
         return new PlanarPoint(v.dot(horizontal), v.dot(y));
     };
     Polygon.prototype.foldToPlane = function () {
-        var folded = new PlanarPoint[this.points.length];
+        var folded = new Array();
         var horizontal = this.points[0].copy().project(this.normal).normalize(1);
         for (var i = 0; i < this.points.length; ++i) {
-            folded[i] = this.foldPoint(horizontal, this.points[i]);
+            folded.push(this.foldPoint(horizontal, this.points[i]));
         }
         return folded;
     };
@@ -268,26 +268,36 @@ var PlanarPoint = /** @class */ (function () {
         return this.x * p.x + this.y * p.y;
     };
     PlanarPoint.prototype.length = function () {
-        return Math.sqrt(this.length());
+        return Math.sqrt(this.dot(this));
     };
     return PlanarPoint;
 }());
-function cuboctahedron(radius) {
-    var poly = new Polyhedron("Cuboctahedron", Paper.A4());
-    var triangle = [new Point(1, 1, 0), new Point(1, 0, 1), new Point(0, 1, 1)];
-    poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
-    var square = [new Point(1, 0, 1), new Point(0, 1, 1),
-        new Point(-1, 0, 1), new Point(0, -1, 1)];
-    poly.addPolygon("square", Polygon.spherical(square, radius), 6);
-}
-cuboctahedron(50);
+var Polyhedra = /** @class */ (function () {
+    function Polyhedra() {
+    }
+    Polyhedra.cuboctahedron = function (radius) {
+        var poly = new Polyhedron("Cuboctahedron", Paper.A4());
+        var triangle = [new Point(1, 1, 0), new Point(1, 0, 1), new Point(0, 1, 1)];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
+        var square = [new Point(1, 0, 1), new Point(0, 1, 1),
+            new Point(-1, 0, 1), new Point(0, -1, 1)];
+        poly.addPolygon("square", Polygon.spherical(square, radius), 6);
+    };
+    Polyhedra.render = function () {
+        this.cuboctahedron(50);
+    };
+    return Polyhedra;
+}());
+console.log("Hello world!");
 var Polyhedron = /** @class */ (function () {
     function Polyhedron(name, paper) {
         this.name = name;
         this.paper = paper;
         var top = document.createElement("div");
-        document.getElementById("polygons").appendChild(top);
+        top.setAttribute("id", "top" + name);
+        document.getElementById("polyhedra").appendChild(top);
         var heading = document.createElement("div");
+        top.appendChild(heading);
         var collapse = document.createElement("a");
         heading.appendChild(collapse);
         collapse.innerHTML = name;
@@ -295,12 +305,13 @@ var Polyhedron = /** @class */ (function () {
         collapse.setAttribute("href", "#content" + name);
         this.content = document.createElement("div");
         this.content.setAttribute("id", "content" + name);
-        heading.appendChild(this.content);
+        top.appendChild(this.content);
     }
     Polyhedron.prototype.addPolygon = function (title, polygon, num) {
         var current = this.paper.copy();
         current.fill(polygon.render(), num);
         var page = document.createElement("div");
+        page.setAttribute("id", "polygon" + this.name + title);
         this.content.appendChild(page);
         current.addToDiv(this.name, title, page);
     };
