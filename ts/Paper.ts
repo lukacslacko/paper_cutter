@@ -3,6 +3,10 @@ class Paper {
 
     constructor(public width: number, public height: number, 
                 public margin: number, public gap: number) {}
+
+    public copy(): Paper {
+        return new Paper(this.width, this.height, this.margin, this.gap);
+    }
     
     public static A4(): Paper {
         return new Paper(210, 297, 10, 5);
