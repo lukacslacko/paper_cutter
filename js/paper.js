@@ -157,7 +157,6 @@ var Polygon = /** @class */ (function () {
         }
     };
     Polygon.prototype.foldPoint = function (horizontal, p) {
-        console.log(this.normal, horizontal, this.center, p);
         var v = this.center.to(p);
         var dist = v.length();
         v.project(this.normal).normalize(dist);
@@ -207,10 +206,11 @@ var Polygon = /** @class */ (function () {
     Polygon.prototype.render = function () {
         var dxf = new DXFModule();
         var folded = this.foldToPlane();
-        var a = Math.atan2(folded[0].y - folded[1].y, folded[0].x - folded[1].x);
+        var a = Math.atan2(folded[1].y - folded[0].y, folded[1].x - folded[0].x);
+        console.log(a * 180 / Math.PI);
         for (var _i = 0, folded_2 = folded; _i < folded_2.length; _i++) {
             var f = folded_2[_i];
-            f.rotate(-a);
+            f.rotate(Math.abs(a));
         }
         this.drawHoles(folded, dxf);
         this.drawEdges(folded, dxf);
@@ -295,8 +295,16 @@ var Polyhedra = /** @class */ (function () {
             new Point(-1, 0, 1), new Point(0, -1, 1)];
         poly.addPolygon("square", Polygon.spherical(square, radius), 6);
     };
+    Polyhedra.dodecahedron = function (radius) {
+        var poly = new Polyhedron("Dodecahedron", Paper.A4());
+        var phi = (Math.sqrt(5) - 1) / 2;
+        var pentagon = [new Point(1, 1, 1), new Point(phi, 0, 1 / phi), new Point(1, -1, 1),
+            new Point(1 / phi, -phi, 0), new Point(1 / phi, phi, 0)];
+        poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
+        this.dodecahedron(50);
     };
     return Polyhedra;
 }());

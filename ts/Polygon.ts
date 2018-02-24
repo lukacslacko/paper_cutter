@@ -29,7 +29,6 @@ class Polygon {
     }
 
     private foldPoint(horizontal: Point, p: Point): PlanarPoint {
-        console.log(this.normal, horizontal, this.center, p);
         let v = this.center.to(p);
         let dist = v.length();
         v.project(this.normal).normalize(dist);
@@ -91,9 +90,10 @@ class Polygon {
     public render(): DXFModule {
         let dxf = new DXFModule();
         let folded = this.foldToPlane();
-        let a = Math.atan2(folded[0].y - folded[1].y, folded[0].x - folded[1].x);
+        let a = Math.atan2(folded[1].y - folded[0].y, folded[1].x - folded[0].x);
+        console.log(a * 180 / Math.PI);
         for (let f of folded) {
-            f.rotate(-a);
+            f.rotate(Math.abs(a));
         }
         this.drawHoles(folded, dxf);
         this.drawEdges(folded, dxf);
