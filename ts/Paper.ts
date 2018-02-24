@@ -17,14 +17,14 @@ class Paper {
         this.num = num;
         let w = piece.maxX - piece.minX;
         let h = piece.maxY - piece.minY;
-        piece.shift(-piece.minX, -piece.minY);
+        piece = piece.shift(-piece.minX, -piece.minY);
         let x = this.margin;
         let y = this.margin;
         while (num > 0) {
-            piece.shift(x, y);
+            piece = piece.shift(x, y);
             this.dxf.add(piece);
             --num;
-            piece.shift(-x, -y);
+            piece = piece.shift(-x, -y);
             x += w + this.gap;
             if (x + w + this.margin > this.width) {
                 x = this.margin;

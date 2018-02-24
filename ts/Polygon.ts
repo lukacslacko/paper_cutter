@@ -2,10 +2,11 @@ class Polygon {
     private circle = 12;
     private hole = 3;
     private width = 10;
+    private normal: Point;
 
-    constructor(private center: Point, private normal: Point, 
+    constructor(private center: Point, normal: Point, 
                 private points: Point[]) {
-        normal.normalize(1);
+        this.normal = normal.copy().normalize(1);
     }
 
     public static spherical(points: Point[], radius: number): Polygon {
@@ -28,6 +29,7 @@ class Polygon {
     }
 
     private foldPoint(horizontal: Point, p: Point): PlanarPoint {
+        console.log(this.normal, horizontal, this.center, p);
         let v = this.center.to(p);
         let dist = v.length();
         v.project(this.normal).normalize(dist);
@@ -68,20 +70,21 @@ class Polygon {
         let u = new PlanarPoint(t.x - beta * b.x, t.y - beta * b.y);
         let v = new PlanarPoint(t.x - beta * a.x, t.y - beta * a.y);
         dxf.line(t.x, t.y, q.x + u.x, q.y + u.y);
-        dxf.line(t.x, t.y, q.x + v.x, q.y + v.y);
+        dxf.line(t.x, t.y, p.x + v.x, p.y + v.y);
         for (let i = 0; i < this.circle; ++i) {
             let x = i * Math.PI / this.circle;
             let y = x + Math.PI / this.circle;
-            dxf.line(q.x + this.width / 2 * Math.cos(x),
-                     q.y + this.width / 2 * Math.sin(x),
-                     q.x + this.width / 2 * Math.cos(y),
-                     q.y + this.width / 2 * Math.sin(y));
+            dxf.line(
+                q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * this.width / 2,
+                q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * this.width / 2,
+                q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * this.width / 2,
+                q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * this.width / 2);
         }
     }
 
     private drawEdges(folded: PlanarPoint[], dxf: DXFModule): void {
-        for (let i = 1; i < folded.length; ++i) {
-            this.connect(folded[i-1], folded[i], dxf);
+        for (let i = 0; i < folded.length; ++i) {
+            this.connect(folded[i], folded[(i+1) % folded.length], dxf);
         }
     }
 
@@ -118,9 +121,9 @@ class Point {
     }
 
     public cross(p: Point): Point {
-        return new Point(this.y * p.z - this.z * p.y, 
-                         this.z * p.x - this.x * p.z,
-                         this.x * p.y - this.y * p.x);
+        return new Point(-this.y * p.z + this.z * p.y, 
+                         -this.z * p.x + this.x * p.z,
+                         -this.x * p.y + this.y * p.x);
     }
 
     public copy(): Point {

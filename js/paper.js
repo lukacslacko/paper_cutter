@@ -101,14 +101,14 @@ var Paper = /** @class */ (function () {
         this.num = num;
         var w = piece.maxX - piece.minX;
         var h = piece.maxY - piece.minY;
-        piece.shift(-piece.minX, -piece.minY);
+        piece = piece.shift(-piece.minX, -piece.minY);
         var x = this.margin;
         var y = this.margin;
         while (num > 0) {
-            piece.shift(x, y);
+            piece = piece.shift(x, y);
             this.dxf.add(piece);
             --num;
-            piece.shift(-x, -y);
+            piece = piece.shift(-x, -y);
             x += w + this.gap;
             if (x + w + this.margin > this.width) {
                 x = this.margin;
@@ -131,12 +131,11 @@ var Paper = /** @class */ (function () {
 var Polygon = /** @class */ (function () {
     function Polygon(center, normal, points) {
         this.center = center;
-        this.normal = normal;
         this.points = points;
         this.circle = 12;
         this.hole = 3;
         this.width = 10;
-        normal.normalize(1);
+        this.normal = normal.copy().normalize(1);
     }
     Polygon.spherical = function (points, radius) {
         var center = new Point(0, 0, 0);
@@ -158,6 +157,7 @@ var Polygon = /** @class */ (function () {
         }
     };
     Polygon.prototype.foldPoint = function (horizontal, p) {
+        console.log(this.normal, horizontal, this.center, p);
         var v = this.center.to(p);
         var dist = v.length();
         v.project(this.normal).normalize(dist);
@@ -192,16 +192,16 @@ var Polygon = /** @class */ (function () {
         var u = new PlanarPoint(t.x - beta * b.x, t.y - beta * b.y);
         var v = new PlanarPoint(t.x - beta * a.x, t.y - beta * a.y);
         dxf.line(t.x, t.y, q.x + u.x, q.y + u.y);
-        dxf.line(t.x, t.y, q.x + v.x, q.y + v.y);
+        dxf.line(t.x, t.y, p.x + v.x, p.y + v.y);
         for (var i = 0; i < this.circle; ++i) {
             var x = i * Math.PI / this.circle;
             var y = x + Math.PI / this.circle;
-            dxf.line(q.x + this.width / 2 * Math.cos(x), q.y + this.width / 2 * Math.sin(x), q.x + this.width / 2 * Math.cos(y), q.y + this.width / 2 * Math.sin(y));
+            dxf.line(q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * this.width / 2, q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * this.width / 2, q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * this.width / 2, q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * this.width / 2);
         }
     };
     Polygon.prototype.drawEdges = function (folded, dxf) {
-        for (var i = 1; i < folded.length; ++i) {
-            this.connect(folded[i - 1], folded[i], dxf);
+        for (var i = 0; i < folded.length; ++i) {
+            this.connect(folded[i], folded[(i + 1) % folded.length], dxf);
         }
     };
     Polygon.prototype.render = function () {
@@ -237,7 +237,7 @@ var Point = /** @class */ (function () {
         return this;
     };
     Point.prototype.cross = function (p) {
-        return new Point(this.y * p.z - this.z * p.y, this.z * p.x - this.x * p.z, this.x * p.y - this.y * p.x);
+        return new Point(-this.y * p.z + this.z * p.y, -this.z * p.x + this.x * p.z, -this.x * p.y + this.y * p.x);
     };
     Point.prototype.copy = function () {
         return new Point(this.x, this.y, this.z);
