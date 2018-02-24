@@ -302,9 +302,21 @@ var Polyhedra = /** @class */ (function () {
             new Point(1 / phi, -phi, 0), new Point(1 / phi, phi, 0)];
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
     };
+    Polyhedra.truncatedCube = function (radius) {
+        var poly = new Polyhedron("Truncated cube", Paper.A4());
+        var a = 1 / (1 + Math.sqrt(2));
+        var triangle = [new Point(a, 1, 1), new Point(1, a, 1), new Point(1, 1, a)];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
+        var octagon = [new Point(1, a, 1), new Point(a, 1, 1),
+            new Point(-a, 1, 1), new Point(-1, a, 1),
+            new Point(-1, -a, 1), new Point(-a, -1, 1),
+            new Point(a, -1, 1), new Point(1, -a, 1)];
+        poly.addPolygon("octagon", Polygon.spherical(octagon, radius), 6);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
+        this.truncatedCube(50);
     };
     return Polyhedra;
 }());
@@ -318,11 +330,9 @@ var Polyhedron = /** @class */ (function () {
         document.getElementById("polyhedra").appendChild(top);
         var heading = document.createElement("div");
         top.appendChild(heading);
-        var collapse = document.createElement("a");
+        var collapse = document.createElement("div");
         heading.appendChild(collapse);
         collapse.innerHTML = name;
-        collapse.setAttribute("data-toggle", "collapse");
-        collapse.setAttribute("href", "#content" + name);
         this.content = document.createElement("div");
         this.content.setAttribute("id", "content" + name);
         top.appendChild(this.content);

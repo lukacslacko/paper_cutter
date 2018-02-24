@@ -7,11 +7,9 @@ class Polyhedron {
         document.getElementById("polyhedra").appendChild(top);
         let heading = document.createElement("div");
         top.appendChild(heading);
-        let collapse = document.createElement("a");
+        let collapse = document.createElement("div");
         heading.appendChild(collapse);
         collapse.innerHTML = name;
-        collapse.setAttribute("data-toggle", "collapse");
-        collapse.setAttribute("href", "#content" + name);
         this.content = document.createElement("div");
         this.content.setAttribute("id", "content" + name);
         top.appendChild(this.content);

@@ -17,9 +17,22 @@ class Polyhedra {
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
     }
 
+    static truncatedCube(radius: number): void {
+        let poly = new Polyhedron("Truncated cube", Paper.A4());
+        let a = 1/(1 + Math.sqrt(2));
+        let triangle = [new Point(a,1,1), new Point(1,a,1), new Point(1,1,a)];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
+        let octagon = [new Point(1,a,1), new Point(a,1,1), 
+                       new Point(-a,1,1), new Point(-1,a,1),
+                       new Point(-1,-a,1), new Point(-a,-1,1),
+                       new Point(a,-1,1), new Point(1,-a,1)];
+        poly.addPolygon("octagon", Polygon.spherical(octagon, radius), 6);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
+        this.truncatedCube(50);
     }
 }
 
