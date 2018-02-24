@@ -3,10 +3,14 @@ class Polygon {
     private hole = 3;
     private width = 10;
     private normal: Point;
+    private points: Point[];
 
-    constructor(private center: Point, normal: Point, 
-                private points: Point[]) {
+    constructor(private center: Point, normal: Point, points: Point[]) {
         this.normal = normal.copy().normalize(1);
+        this.points = new Array<Point>();
+        for (let p of points) {
+            this.points.push(p.copy());
+        }
     }
 
     public static spherical(points: Point[], radius: number): Polygon {

@@ -131,16 +131,20 @@ var Paper = /** @class */ (function () {
 var Polygon = /** @class */ (function () {
     function Polygon(center, normal, points) {
         this.center = center;
-        this.points = points;
         this.circle = 12;
         this.hole = 3;
         this.width = 10;
         this.normal = normal.copy().normalize(1);
+        this.points = new Array();
+        for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
+            var p = points_1[_i];
+            this.points.push(p.copy());
+        }
     }
     Polygon.spherical = function (points, radius) {
         var center = new Point(0, 0, 0);
-        for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
-            var p = points_1[_i];
+        for (var _i = 0, points_2 = points; _i < points_2.length; _i++) {
+            var p = points_2[_i];
             center.x += p.x / points.length;
             center.y += p.y / points.length;
             center.z += p.z / points.length;
@@ -313,10 +317,34 @@ var Polyhedra = /** @class */ (function () {
             new Point(a, -1, 1), new Point(1, -a, 1)];
         poly.addPolygon("octagon", Polygon.spherical(octagon, radius), 6);
     };
+    Polyhedra.rectifiedTruncatedIcosahedron = function (radius) {
+        var poly = new Polyhedron("Rectified truncated icosahedron", Paper.A4());
+        var c0 = (1 + Math.sqrt(5)) / 4;
+        var c1 = 3 * (Math.sqrt(5) - 1) / 4;
+        var c2 = (2 * Math.sqrt(5) - 1) / 2;
+        var c3 = Math.sqrt(5);
+        var c4 = (7 + Math.sqrt(5)) / 4;
+        var c5 = 3 * (Math.sqrt(5) + 1) / 4;
+        var c6 = (9 + Math.sqrt(5)) / 4;
+        var v0 = new Point(0, 0, 3);
+        var v6 = new Point(c1, 0.5, c6);
+        var v8 = new Point(c1, -0.5, c6);
+        poly.addPolygon("triangle", Polygon.spherical([v8, v6, v0], radius), 60);
+        var v12 = new Point(-c1, -0.5, c6);
+        var v32 = new Point(c1, -1.5, c5);
+        var v36 = new Point(-c1, -1.5, c5);
+        var v80 = new Point(0, -2, c3);
+        poly.addPolygon("hexagon", Polygon.spherical([v80, v32, v8, v0, v12, v36], radius), 20);
+        var v54 = new Point(c2, c0, c4);
+        var v56 = new Point(c2, -c0, c4);
+        var v82 = new Point(c3, 0, 2);
+        poly.addPolygon("pentagon", Polygon.spherical([v82, v54, v6, v8, v56], radius), 12);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
         this.truncatedCube(50);
+        this.rectifiedTruncatedIcosahedron(110);
     };
     return Polyhedra;
 }());

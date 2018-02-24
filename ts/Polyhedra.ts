@@ -29,10 +29,35 @@ class Polyhedra {
         poly.addPolygon("octagon", Polygon.spherical(octagon, radius), 6);
     }
 
+    static rectifiedTruncatedIcosahedron(radius: number): void {
+        let poly = new Polyhedron("Rectified truncated icosahedron", Paper.A4());
+        let c0 = (1 + Math.sqrt(5)) / 4;
+        let c1 = 3 * (Math.sqrt(5) - 1) / 4;
+        let c2 = (2 * Math.sqrt(5) - 1) / 2;
+        let c3 = Math.sqrt(5);
+        let c4 = (7 + Math.sqrt(5)) / 4;
+        let c5 = 3 * (Math.sqrt(5) + 1) / 4;
+        let c6 = (9 + Math.sqrt(5)) / 4;
+        let v0 = new Point(0, 0, 3);
+        let v6 = new Point(c1, 0.5, c6);
+        let v8 = new Point(c1, -0.5, c6);
+        poly.addPolygon("triangle", Polygon.spherical([v8, v6, v0], radius), 60);
+        let v12 = new Point(-c1, -0.5, c6);
+        let v32 = new Point(c1, -1.5, c5);
+        let v36 = new Point(-c1, -1.5, c5);
+        let v80 = new Point(0, -2, c3);
+        poly.addPolygon("hexagon", Polygon.spherical([v80, v32, v8, v0, v12, v36], radius), 20);
+        let v54 = new Point(c2, c0, c4);
+        let v56 = new Point(c2, -c0, c4);
+        let v82 = new Point(c3, 0, 2);
+        poly.addPolygon("pentagon", Polygon.spherical([v82, v54, v6, v8, v56], radius), 12);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
         this.truncatedCube(50);
+        this.rectifiedTruncatedIcosahedron(110);
     }
 }
 
