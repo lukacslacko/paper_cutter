@@ -91,6 +91,10 @@ class Polygon {
     public render(): DXFModule {
         let dxf = new DXFModule();
         let folded = this.foldToPlane();
+        let a = Math.atan2(folded[0].y - folded[1].y, folded[0].x - folded[1].x);
+        for (let f of folded) {
+            f.rotate(-a);
+        }
         this.drawHoles(folded, dxf);
         this.drawEdges(folded, dxf);
         return dxf;
@@ -151,6 +155,14 @@ class PlanarPoint {
         let l = this.length();
         this.x *= radius / l;
         this.y *= radius / l;
+        return this;
+    }
+
+    public rotate(a: number): PlanarPoint {
+        let x = this.x * Math.cos(a) - this.y * Math.sin(a);
+        let y = this.x * Math.sin(a) + this.y * Math.cos(a);
+        this.x = x;
+        this.y = y;
         return this;
     }
 

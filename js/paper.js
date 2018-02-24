@@ -207,6 +207,11 @@ var Polygon = /** @class */ (function () {
     Polygon.prototype.render = function () {
         var dxf = new DXFModule();
         var folded = this.foldToPlane();
+        var a = Math.atan2(folded[0].y - folded[1].y, folded[0].x - folded[1].x);
+        for (var _i = 0, folded_2 = folded; _i < folded_2.length; _i++) {
+            var f = folded_2[_i];
+            f.rotate(-a);
+        }
         this.drawHoles(folded, dxf);
         this.drawEdges(folded, dxf);
         return dxf;
@@ -264,6 +269,13 @@ var PlanarPoint = /** @class */ (function () {
         this.y *= radius / l;
         return this;
     };
+    PlanarPoint.prototype.rotate = function (a) {
+        var x = this.x * Math.cos(a) - this.y * Math.sin(a);
+        var y = this.x * Math.sin(a) + this.y * Math.cos(a);
+        this.x = x;
+        this.y = y;
+        return this;
+    };
     PlanarPoint.prototype.dot = function (p) {
         return this.x * p.x + this.y * p.y;
     };
@@ -284,7 +296,7 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("square", Polygon.spherical(square, radius), 6);
     };
     Polyhedra.render = function () {
-        this.cuboctahedron(50);
+        this.cuboctahedron(30);
     };
     return Polyhedra;
 }());

@@ -9,7 +9,7 @@ class Polyhedra {
     }
 
     public static render(): void {
-        this.cuboctahedron(50);
+        this.cuboctahedron(30);
     }
 }
 
