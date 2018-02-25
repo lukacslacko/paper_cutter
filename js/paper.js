@@ -291,7 +291,7 @@ var Polyhedra = /** @class */ (function () {
     function Polyhedra() {
     }
     Polyhedra.cuboctahedron = function (radius) {
-        var poly = new Polyhedron("Cuboctahedron", Paper.A4());
+        var poly = new Polyhedron("Cuboctahedron", this.paper);
         var triangle = [new Point(1, 1, 0), new Point(1, 0, 1), new Point(0, 1, 1)];
         poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
         var square = [new Point(1, 0, 1), new Point(0, 1, 1),
@@ -299,14 +299,14 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("square", Polygon.spherical(square, radius), 6);
     };
     Polyhedra.dodecahedron = function (radius) {
-        var poly = new Polyhedron("Dodecahedron", Paper.A4());
+        var poly = new Polyhedron("Dodecahedron", this.paper);
         var phi = (Math.sqrt(5) - 1) / 2;
         var pentagon = [new Point(1, 1, 1), new Point(phi, 0, 1 / phi), new Point(1, -1, 1),
             new Point(1 / phi, -phi, 0), new Point(1 / phi, phi, 0)];
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
     };
     Polyhedra.truncatedCube = function (radius) {
-        var poly = new Polyhedron("Truncated cube", Paper.A4());
+        var poly = new Polyhedron("Truncated cube", this.paper);
         var a = 1 / (1 + Math.sqrt(2));
         var triangle = [new Point(a, 1, 1), new Point(1, a, 1), new Point(1, 1, a)];
         poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
@@ -317,7 +317,7 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("octagon", Polygon.spherical(octagon, radius), 6);
     };
     Polyhedra.rectifiedTruncatedIcosahedron = function (radius) {
-        var poly = new Polyhedron("Rectified truncated icosahedron", Paper.A4());
+        var poly = new Polyhedron("Rectified truncated icosahedron", this.paper);
         var c0 = (1 + Math.sqrt(5)) / 4;
         var c1 = 3 * (Math.sqrt(5) - 1) / 4;
         var c2 = (2 * Math.sqrt(5) - 1) / 2;
@@ -340,7 +340,7 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("pentagon", Polygon.spherical([v82, v54, v6, v8, v56], radius), 12);
     };
     Polyhedra.rectifiedSnubCube = function (radius) {
-        var poly = new Polyhedron("Rectified snub cube", Paper.A4());
+        var poly = new Polyhedron("Rectified snub cube", this.paper);
         var c0 = 0.2835;
         var c1 = 0.9590;
         var c2 = 1.4804;
@@ -368,7 +368,9 @@ var Polyhedra = /** @class */ (function () {
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
+        new Torus(50, 100, 4, 12).render(this.paper);
     };
+    Polyhedra.paper = Paper.A4();
     return Polyhedra;
 }());
 console.log("Hello world!");
@@ -397,5 +399,37 @@ var Polyhedron = /** @class */ (function () {
         current.addToDiv(this.name, title, page);
     };
     return Polyhedron;
+}());
+var Torus = /** @class */ (function () {
+    function Torus(rho, R, n1, n2) {
+        this.rho = rho;
+        this.R = R;
+        this.n1 = n1;
+        this.n2 = n2;
+    }
+    Torus.prototype.normal = function (lat) {
+        return new Point(-Math.cos(lat), 0, Math.sin(lat));
+    };
+    Torus.prototype.point = function (lat, lng) {
+        return new Point((this.R - this.rho * Math.cos(lat)) * Math.cos(lng), (this.R - this.rho * Math.cos(lat)) * Math.sin(lng), this.rho * Math.sin(lat));
+    };
+    Torus.prototype.render = function (paper) {
+        var poly = new Polyhedron("Torus", paper);
+        var dlat = Math.PI / this.n1;
+        var dlng = Math.PI / this.n2;
+        for (var i = 0; i < this.n1; ++i) {
+            var lat = i * dlat + dlat / 2;
+            var norm = this.normal(lat);
+            var hexa = [this.point(lat + dlat / 3, dlng),
+                this.point(lat - dlat / 3, dlng),
+                this.point(lat - 2 * dlat / 3, 0),
+                this.point(lat - dlat / 3, -dlng),
+                this.point(lat + dlat / 3, -dlng),
+                this.point(lat + 2 * dlat / 3, 0)];
+            var center = this.point(lat, 0);
+            poly.addPolygon("hexa" + i, new Polygon(center, norm, hexa), this.n2);
+        }
+    };
+    return Torus;
 }());
 //# sourceMappingURL=paper.js.map

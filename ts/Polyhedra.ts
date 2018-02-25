@@ -1,6 +1,8 @@
 class Polyhedra {
+    static paper = Paper.A4();
+
     static cuboctahedron(radius: number): void {
-        let poly = new Polyhedron("Cuboctahedron", Paper.A4());
+        let poly = new Polyhedron("Cuboctahedron", this.paper);
         let triangle = [new Point(1,1,0), new Point(1,0,1), new Point(0,1,1)];
         poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
         let square = [new Point(1,0,1), new Point(0,1,1), 
@@ -9,7 +11,7 @@ class Polyhedra {
     }
 
     static dodecahedron(radius: number): void {
-        let poly = new Polyhedron("Dodecahedron", Paper.A4());
+        let poly = new Polyhedron("Dodecahedron", this.paper);
         let phi = (Math.sqrt(5) - 1) / 2;
         let pentagon = 
             [new Point(1, 1, 1), new Point(phi, 0, 1/phi), new Point(1, -1, 1),
@@ -18,7 +20,7 @@ class Polyhedra {
     }
 
     static truncatedCube(radius: number): void {
-        let poly = new Polyhedron("Truncated cube", Paper.A4());
+        let poly = new Polyhedron("Truncated cube", this.paper);
         let a = 1/(1 + Math.sqrt(2));
         let triangle = [new Point(a,1,1), new Point(1,a,1), new Point(1,1,a)];
         poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 8);
@@ -30,7 +32,7 @@ class Polyhedra {
     }
 
     static rectifiedTruncatedIcosahedron(radius: number): void {
-        let poly = new Polyhedron("Rectified truncated icosahedron", Paper.A4());
+        let poly = new Polyhedron("Rectified truncated icosahedron", this.paper);
         let c0 = (1 + Math.sqrt(5)) / 4;
         let c1 = 3 * (Math.sqrt(5) - 1) / 4;
         let c2 = (2 * Math.sqrt(5) - 1) / 2;
@@ -54,7 +56,7 @@ class Polyhedra {
     }
 
     static rectifiedSnubCube(radius: number): void {
-        let poly = new Polyhedron("Rectified snub cube", Paper.A4());
+        let poly = new Polyhedron("Rectified snub cube", this.paper);
         let c0 = 0.2835;
         let c1 = 0.9590;
         let c2 = 1.4804;
@@ -83,6 +85,7 @@ class Polyhedra {
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
+        new Torus(50, 100, 4, 12).render(this.paper);
     }
 }
 
