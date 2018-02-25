@@ -95,7 +95,6 @@ class Polygon {
         let dxf = new DXFModule();
         let folded = this.foldToPlane();
         let a = Math.atan2(folded[1].y - folded[0].y, folded[1].x - folded[0].x);
-        console.log(a * 180 / Math.PI);
         for (let f of folded) {
             f.rotate(Math.abs(a));
         }

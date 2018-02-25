@@ -53,11 +53,36 @@ class Polyhedra {
         poly.addPolygon("pentagon", Polygon.spherical([v82, v54, v6, v8, v56], radius), 12);
     }
 
+    static rectifiedSnubCube(radius: number): void {
+        let poly = new Polyhedron("Rectified snub cube", Paper.A4());
+        let c0 = 0.2835;
+        let c1 = 0.9590;
+        let c2 = 1.4804;
+        let c3 = 1.7640;
+        let c4 = 2.2852;
+        let v0 = new Point(c1, -c0, c4);
+        let v24 = new Point(c3, 0, c3);
+        let v36 = new Point(c2, -c1, c3);
+        console.log(v0.length(), v24.length(), v36.length());
+        let triangle = [v0, v36, v24];
+        let v2 = new Point(-c1, c0, c4);
+        let v12 = new Point(c0, c1, c4);
+        let v14 = new Point(-c0, -c1, c4);
+        let square = [v0, v12, v2, v14];
+        let v34 = new Point(0, -c3, c3);
+        let v44 = new Point(c1, -c3, c2);
+        let pentagon = [v0, v14, v34, v44, v36];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 32);
+        poly.addPolygon("square", Polygon.spherical(square, radius), 6);
+        poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
+        this.rectifiedSnubCube(80);
     }
 }
 

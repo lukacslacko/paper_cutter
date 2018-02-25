@@ -211,7 +211,6 @@ var Polygon = /** @class */ (function () {
         var dxf = new DXFModule();
         var folded = this.foldToPlane();
         var a = Math.atan2(folded[1].y - folded[0].y, folded[1].x - folded[0].x);
-        console.log(a * 180 / Math.PI);
         for (var _i = 0, folded_2 = folded; _i < folded_2.length; _i++) {
             var f = folded_2[_i];
             f.rotate(Math.abs(a));
@@ -340,11 +339,35 @@ var Polyhedra = /** @class */ (function () {
         var v82 = new Point(c3, 0, 2);
         poly.addPolygon("pentagon", Polygon.spherical([v82, v54, v6, v8, v56], radius), 12);
     };
+    Polyhedra.rectifiedSnubCube = function (radius) {
+        var poly = new Polyhedron("Rectified snub cube", Paper.A4());
+        var c0 = 0.2835;
+        var c1 = 0.9590;
+        var c2 = 1.4804;
+        var c3 = 1.7640;
+        var c4 = 2.2852;
+        var v0 = new Point(c1, -c0, c4);
+        var v24 = new Point(c3, 0, c3);
+        var v36 = new Point(c2, -c1, c3);
+        console.log(v0.length(), v24.length(), v36.length());
+        var triangle = [v0, v36, v24];
+        var v2 = new Point(-c1, c0, c4);
+        var v12 = new Point(c0, c1, c4);
+        var v14 = new Point(-c0, -c1, c4);
+        var square = [v0, v12, v2, v14];
+        var v34 = new Point(0, -c3, c3);
+        var v44 = new Point(c1, -c3, c2);
+        var pentagon = [v0, v14, v34, v44, v36];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 32);
+        poly.addPolygon("square", Polygon.spherical(square, radius), 6);
+        poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
+        this.rectifiedSnubCube(80);
     };
     return Polyhedra;
 }());
