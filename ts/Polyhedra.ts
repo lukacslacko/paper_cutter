@@ -79,6 +79,33 @@ class Polyhedra {
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
     }
 
+    static rectifiedRhombicTriacontahedron(radius: number): void {
+        let phi = (Math.sqrt(5) - 1) / 2;
+        let A = new Point(phi, 0, 1/phi);
+        let B = new Point(1, -1, 1);
+        let C = new Point(1/phi, -phi, 0);
+        let D = new Point(1/phi, phi, 0);
+        let E = new Point(1, 1, 1);
+        let L = new Point(1, 1, -1);
+        let F = new Point(0, 1/phi, phi);
+        let K = new Point(0, 1/phi, -phi);
+        let G = new Point(-1, 1, 1);
+        let H = new Point(-phi, 0, 1/phi);
+        let P = Point.avg([A, B, C, D, E]);
+        let Q = Point.avg([A, F, G, H, E]);
+        let R = Point.avg([E, D, L, K, F]);
+        let poly = new Polyhedron("Rectified rhombic triacontahedron", this.paper);
+        poly.addPolygon("pentagon", Polygon.spherical(
+            [Point.avg([P,A]), Point.avg([P,B]), Point.avg([P,C]), 
+             Point.avg([P,D]), Point.avg([P,E])], radius), 12);
+        poly.addPolygon("square", Polygon.spherical(
+            [Point.avg([Q,E]), Point.avg([Q,A]), Point.avg([P,A]), Point.avg([P,E])], radius
+        ), 30);
+        poly.addPolygon("triangle", Polygon.spherical([
+            Point.avg([E,Q]), Point.avg([E,P]), Point.avg([E,R])
+        ], radius), 20);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -86,6 +113,7 @@ class Polyhedra {
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).render(this.paper);
+        this.rectifiedRhombicTriacontahedron(80);
     }
 }
 

@@ -107,6 +107,16 @@ class Polygon {
 class Point {
     constructor(public x: number, public y: number, public z: number) {}
 
+    static avg(points: Point[]): Point {
+        let r = new Point(0, 0, 0);
+        for (let p of points) {
+            r.x += p.x / points.length;
+            r.y += p.y / points.length;
+            r.z += p.z / points.length;
+        }
+        return r;
+    }
+
     public normalize(radius: number): Point {
         let l = this.length();
         this.x *= radius / l;

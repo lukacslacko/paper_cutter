@@ -227,6 +227,16 @@ var Point = /** @class */ (function () {
         this.y = y;
         this.z = z;
     }
+    Point.avg = function (points) {
+        var r = new Point(0, 0, 0);
+        for (var _i = 0, points_3 = points; _i < points_3.length; _i++) {
+            var p = points_3[_i];
+            r.x += p.x / points.length;
+            r.y += p.y / points.length;
+            r.z += p.z / points.length;
+        }
+        return r;
+    };
     Point.prototype.normalize = function (radius) {
         var l = this.length();
         this.x *= radius / l;
@@ -362,6 +372,29 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("square", Polygon.spherical(square, radius), 6);
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
     };
+    Polyhedra.rectifiedRhombicTriacontahedron = function (radius) {
+        var phi = (Math.sqrt(5) - 1) / 2;
+        var A = new Point(phi, 0, 1 / phi);
+        var B = new Point(1, -1, 1);
+        var C = new Point(1 / phi, -phi, 0);
+        var D = new Point(1 / phi, phi, 0);
+        var E = new Point(1, 1, 1);
+        var L = new Point(1, 1, -1);
+        var F = new Point(0, 1 / phi, phi);
+        var K = new Point(0, 1 / phi, -phi);
+        var G = new Point(-1, 1, 1);
+        var H = new Point(-phi, 0, 1 / phi);
+        var P = Point.avg([A, B, C, D, E]);
+        var Q = Point.avg([A, F, G, H, E]);
+        var R = Point.avg([E, D, L, K, F]);
+        var poly = new Polyhedron("Rectified rhombic triacontahedron", this.paper);
+        poly.addPolygon("pentagon", Polygon.spherical([Point.avg([P, A]), Point.avg([P, B]), Point.avg([P, C]),
+            Point.avg([P, D]), Point.avg([P, E])], radius), 12);
+        poly.addPolygon("square", Polygon.spherical([Point.avg([Q, E]), Point.avg([Q, A]), Point.avg([P, A]), Point.avg([P, E])], radius), 30);
+        poly.addPolygon("triangle", Polygon.spherical([
+            Point.avg([E, Q]), Point.avg([E, P]), Point.avg([E, R])
+        ], radius), 20);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -369,6 +402,7 @@ var Polyhedra = /** @class */ (function () {
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).render(this.paper);
+        this.rectifiedRhombicTriacontahedron(80);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
