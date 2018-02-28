@@ -106,6 +106,19 @@ class Polyhedra {
         ], radius), 20);
     }
 
+    static truncatedIcosahedron(radius: number): void {
+        let phi = (Math.sqrt(5) + 1) / 2;
+        let A = new Point(phi, 0, 1);
+        let B = new Point(phi, 0, -1);
+        let C = new Point(1, phi, 0);
+        let D = new Point(1, -phi, 0);
+        let P = Point.avg([A, B, A]);
+        let X = Point.avg([A, B, C]);
+        let Y = Point.avg([A, B, D]);
+        let poly = new Polyhedron("Truncated icosahedron", this.paper);
+        poly.addPolygon("triangle", Polygon.sphericalWithCenter(P, [Y, X, A], radius), 60);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -114,6 +127,7 @@ class Polyhedra {
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).render(this.paper);
         this.rectifiedRhombicTriacontahedron(80);
+        this.truncatedIcosahedron(60);
     }
 }
 

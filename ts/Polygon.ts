@@ -14,12 +14,11 @@ class Polygon {
     }
 
     public static spherical(points: Point[], radius: number): Polygon {
-        let center = new Point(0, 0, 0);
-        for (let p of points) {
-            center.x += p.x / points.length;
-            center.y += p.y / points.length;
-            center.z += p.z / points.length;
-        }
+        return this.sphericalWithCenter(Point.avg(points), points, radius);
+    }
+
+    public static sphericalWithCenter(center: Point, points: Point[], 
+                                      radius: number): Polygon {
         let poly = new Polygon(center, center, points);
         poly.projectToSphere(radius);
         return poly;

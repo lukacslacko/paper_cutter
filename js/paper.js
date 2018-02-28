@@ -142,13 +142,9 @@ var Polygon = /** @class */ (function () {
         }
     }
     Polygon.spherical = function (points, radius) {
-        var center = new Point(0, 0, 0);
-        for (var _i = 0, points_2 = points; _i < points_2.length; _i++) {
-            var p = points_2[_i];
-            center.x += p.x / points.length;
-            center.y += p.y / points.length;
-            center.z += p.z / points.length;
-        }
+        return this.sphericalWithCenter(Point.avg(points), points, radius);
+    };
+    Polygon.sphericalWithCenter = function (center, points, radius) {
         var poly = new Polygon(center, center, points);
         poly.projectToSphere(radius);
         return poly;
@@ -229,8 +225,8 @@ var Point = /** @class */ (function () {
     }
     Point.avg = function (points) {
         var r = new Point(0, 0, 0);
-        for (var _i = 0, points_3 = points; _i < points_3.length; _i++) {
-            var p = points_3[_i];
+        for (var _i = 0, points_2 = points; _i < points_2.length; _i++) {
+            var p = points_2[_i];
             r.x += p.x / points.length;
             r.y += p.y / points.length;
             r.z += p.z / points.length;
@@ -395,6 +391,18 @@ var Polyhedra = /** @class */ (function () {
             Point.avg([E, Q]), Point.avg([E, P]), Point.avg([E, R])
         ], radius), 20);
     };
+    Polyhedra.truncatedIcosahedron = function (radius) {
+        var phi = (Math.sqrt(5) + 1) / 2;
+        var A = new Point(phi, 0, 1);
+        var B = new Point(phi, 0, -1);
+        var C = new Point(1, phi, 0);
+        var D = new Point(1, -phi, 0);
+        var P = Point.avg([A, B, A]);
+        var X = Point.avg([A, B, C]);
+        var Y = Point.avg([A, B, D]);
+        var poly = new Polyhedron("Truncated icosahedron", this.paper);
+        poly.addPolygon("triangle", Polygon.sphericalWithCenter(P, [Y, X, A], radius), 60);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -403,6 +411,7 @@ var Polyhedra = /** @class */ (function () {
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).render(this.paper);
         this.rectifiedRhombicTriacontahedron(80);
+        this.truncatedIcosahedron(60);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
