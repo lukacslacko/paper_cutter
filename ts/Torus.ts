@@ -12,8 +12,8 @@ class Torus {
                          this.rho * Math.sin(lat)); 
     }
 
-    public render(paper: Paper): void {
-        let poly = new Polyhedron("Torus", paper);
+    public renderHexa(paper: Paper): void {
+        let poly = new Polyhedron("Torus hexa", paper);
         let dlat = Math.PI / this.n1;
         let dlng = Math.PI / this.n2;
         for (let i = 0; i < this.n1; ++i) {
@@ -27,6 +27,22 @@ class Torus {
                         this.point(lat + 2*dlat/3, 0)];
             let center = this.point(lat, 0);
             poly.addPolygon(`hexa${i}`, new Polygon(center, norm, hexa), this.n2);
+        }
+    }
+
+    public renderQuad(paper: Paper): void {
+        let poly = new Polyhedron("Torus quad", paper);
+        let dlat = Math.PI / this.n1;
+        let dlng = Math.PI / this.n2;
+        for (let i = 0; i < this.n1; ++i) {
+            let lat = i * dlat + dlat / 2;
+            let norm = this.normal(lat);
+            let quad = [this.point(lat - dlat/2, -dlng),
+                        this.point(lat + dlat/2, -dlng),
+                        this.point(lat + dlat/2, dlng),
+                        this.point(lat - dlat/2, dlng)];
+            let center = this.point(lat, 0);
+            poly.addPolygon(`quad${i}`, new Polygon(center, norm, quad), this.n2);
         }
     }
 }

@@ -125,9 +125,10 @@ class Polyhedra {
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
-        new Torus(50, 100, 4, 12).render(this.paper);
+        new Torus(50, 100, 4, 12).renderHexa(this.paper);
         this.rectifiedRhombicTriacontahedron(80);
         this.truncatedIcosahedron(60);
+        new Torus(40, 80, 4, 16).renderQuad(this.paper);
     }
 }
 

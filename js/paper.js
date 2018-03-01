@@ -409,9 +409,10 @@ var Polyhedra = /** @class */ (function () {
         this.truncatedCube(50);
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
-        new Torus(50, 100, 4, 12).render(this.paper);
+        new Torus(50, 100, 4, 12).renderHexa(this.paper);
         this.rectifiedRhombicTriacontahedron(80);
         this.truncatedIcosahedron(60);
+        new Torus(40, 80, 4, 16).renderQuad(this.paper);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
@@ -456,8 +457,8 @@ var Torus = /** @class */ (function () {
     Torus.prototype.point = function (lat, lng) {
         return new Point((this.R - this.rho * Math.cos(lat)) * Math.cos(lng), (this.R - this.rho * Math.cos(lat)) * Math.sin(lng), this.rho * Math.sin(lat));
     };
-    Torus.prototype.render = function (paper) {
-        var poly = new Polyhedron("Torus", paper);
+    Torus.prototype.renderHexa = function (paper) {
+        var poly = new Polyhedron("Torus hexa", paper);
         var dlat = Math.PI / this.n1;
         var dlng = Math.PI / this.n2;
         for (var i = 0; i < this.n1; ++i) {
@@ -471,6 +472,21 @@ var Torus = /** @class */ (function () {
                 this.point(lat + 2 * dlat / 3, 0)];
             var center = this.point(lat, 0);
             poly.addPolygon("hexa" + i, new Polygon(center, norm, hexa), this.n2);
+        }
+    };
+    Torus.prototype.renderQuad = function (paper) {
+        var poly = new Polyhedron("Torus quad", paper);
+        var dlat = Math.PI / this.n1;
+        var dlng = Math.PI / this.n2;
+        for (var i = 0; i < this.n1; ++i) {
+            var lat = i * dlat + dlat / 2;
+            var norm = this.normal(lat);
+            var quad = [this.point(lat - dlat / 2, -dlng),
+                this.point(lat + dlat / 2, -dlng),
+                this.point(lat + dlat / 2, dlng),
+                this.point(lat - dlat / 2, dlng)];
+            var center = this.point(lat, 0);
+            poly.addPolygon("quad" + i, new Polygon(center, norm, quad), this.n2);
         }
     };
     return Torus;
