@@ -108,6 +108,17 @@ class Polyhedra {
         poly.addPolygon("triangle", Polygon.sphericalWithCenter(P, [Y, X, A], radius), 60);
     }
 
+    static jaaC(radius: number): void {
+        let poly = new Polyhedron("jaaC", this.paper);
+        function p(x: number, y: number, z: number): Point {
+            return new Point(x, y, z);
+        }
+        poly.addPolygon("edge", Polygon.sphericalWithCenter(p(1,2,2),
+            [p(2,2,2), p(1,2,1), p(0,2,2), p(1,1,2)], radius), 24);
+        poly.addPolygon("face", Polygon.sphericalWithCenter(p(0,2,1),
+            [p(0,2,2), p(1,2,1), p(0,2,0), p(-1,2,1)], radius), 24);
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -118,6 +129,7 @@ class Polyhedra {
         this.truncatedOctahedronAndDual(65);
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
+        this.jaaC(70);
     }
 }
 

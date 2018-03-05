@@ -408,6 +408,14 @@ var Polyhedra = /** @class */ (function () {
         var poly = new Polyhedron("Truncated icosahedron", this.paper);
         poly.addPolygon("triangle", Polygon.sphericalWithCenter(P, [Y, X, A], radius), 60);
     };
+    Polyhedra.jaaC = function (radius) {
+        var poly = new Polyhedron("jaaC", this.paper);
+        function p(x, y, z) {
+            return new Point(x, y, z);
+        }
+        poly.addPolygon("edge", Polygon.sphericalWithCenter(p(1, 2, 2), [p(2, 2, 2), p(1, 2, 1), p(0, 2, 2), p(1, 1, 2)], radius), 24);
+        poly.addPolygon("face", Polygon.sphericalWithCenter(p(0, 2, 1), [p(0, 2, 2), p(1, 2, 1), p(0, 2, 0), p(-1, 2, 1)], radius), 24);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -418,6 +426,7 @@ var Polyhedra = /** @class */ (function () {
         this.truncatedOctahedronAndDual(65);
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
+        this.jaaC(70);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
