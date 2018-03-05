@@ -416,6 +416,22 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("edge", Polygon.sphericalWithCenter(p(1, 2, 2), [p(2, 2, 2), p(1, 2, 1), p(0, 2, 2), p(1, 1, 2)], radius), 24);
         poly.addPolygon("face", Polygon.sphericalWithCenter(p(0, 2, 1), [p(0, 2, 2), p(1, 2, 1), p(0, 2, 0), p(-1, 2, 1)], radius), 24);
     };
+    Polyhedra.rotateSin = function (r1, r2, wavelength, nlat, nlng, num) {
+        function p(lat, lng) {
+            var r = r2 + (r1 - r2) * (1 + Math.cos(lat)) / 2;
+            return new Point(r * Math.cos(lng), r * Math.sin(lng), wavelength * lat / Math.PI);
+        }
+        var poly = new Polyhedron("wave " + nlat + " " + nlng, this.paper);
+        for (var i = 0; i < nlat; ++i) {
+            var dlat = Math.PI / nlat;
+            var lat = Math.PI / nlat * i + 0.0001;
+            var dlng = 2 * Math.PI / nlng;
+            poly.addPolygon("poly" + i, new Polygon(p(lat + dlat / 2, 0), new Point(1, 0, 0), [
+                p(lat, 0), p(lat + dlat / 2, dlng / 2), p(lat + dlat, 0),
+                p(lat + dlat / 2, -dlng / 2)
+            ]), nlng * num);
+        }
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -427,6 +443,7 @@ var Polyhedra = /** @class */ (function () {
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
+        this.rotateSin(70, 35, 280, 6, 7, 2);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;

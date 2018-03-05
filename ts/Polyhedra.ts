@@ -119,6 +119,26 @@ class Polyhedra {
             [p(0,2,2), p(1,2,1), p(0,2,0), p(-1,2,1)], radius), 24);
     }
 
+    static rotateSin(r1: number, r2: number, wavelength: number, nlat: number, nlng: number, num: number): void {
+        function p(lat: number, lng: number): Point {
+            let r = r2 + (r1 - r2) * (1 + Math.cos(lat)) / 2;
+            return new Point(r * Math.cos(lng), r * Math.sin(lng), wavelength * lat / Math.PI);
+        }
+        let poly = new Polyhedron(`wave ${nlat} ${nlng}`, this.paper);
+        for (let i = 0; i < nlat; ++i) {
+            let dlat = Math.PI / nlat;
+            let lat = Math.PI / nlat * i + 0.0001;
+            let dlng = 2 * Math.PI / nlng;
+            poly.addPolygon(
+                `poly${i}`,
+                 new Polygon(p(lat + dlat/2, 0), new Point(1, 0, 0), [
+                     p(lat, 0), p(lat + dlat/2, dlng/2), p(lat + dlat, 0),
+                     p(lat + dlat/2, -dlng/2)
+                 ]),
+                 nlng * num);
+        }
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -130,6 +150,7 @@ class Polyhedra {
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
+        this.rotateSin(70, 35, 280, 6, 7, 2);
     }
 }
 
