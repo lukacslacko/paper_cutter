@@ -85,7 +85,7 @@ class Polyhedra {
         }
         let poly = new Polyhedron("Truncated octahedron", this.paper);
         poly.addPolygon("square", Polygon.sphericalWithCenter(p(0,4,0), [
-            p(1,4,0), p(0,4,1), p(-1,4,0), p(0,4,-1)
+            p(2,4,0), p(0,4,2), p(-2,4,0), p(0,4,-2)
         ], radius), 6);
         poly.addPolygon("triangle", Polygon.sphericalWithCenter(p(0,4,2), [
             p(1,4,1), p(-1,4,1), p(0,3,3)
