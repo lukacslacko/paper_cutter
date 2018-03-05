@@ -131,9 +131,9 @@ class Polyhedra {
             let dlng = 2 * Math.PI / nlng;
             poly.addPolygon(
                 `poly${i}`,
-                 new Polygon(p(lat + dlat/2, 0), new Point(1, 0, 0), [
-                     p(lat, 0), p(lat + dlat/2, dlng/2), p(lat + dlat, 0),
-                     p(lat + dlat/2, -dlng/2)
+                 new Polygon(p(lat, 0), new Point(1, 0, 0), [
+                     p(lat-dlat, 0), p(lat, dlng/2), p(lat + dlat, 0),
+                     p(lat, -dlng/2)
                  ]),
                  nlng * num);
         }
@@ -150,7 +150,7 @@ class Polyhedra {
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
-        this.rotateSin(70, 35, 280, 6, 7, 2);
+        this.rotateSin(70, 35, 140, 6, 7, 2);
     }
 }
 
