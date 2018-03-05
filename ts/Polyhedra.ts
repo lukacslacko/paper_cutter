@@ -79,31 +79,20 @@ class Polyhedra {
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
     }
 
-    static rectifiedRhombicTriacontahedron(radius: number): void {
-        let phi = (Math.sqrt(5) - 1) / 2;
-        let A = new Point(phi, 0, 1/phi);
-        let B = new Point(1, -1, 1);
-        let C = new Point(1/phi, -phi, 0);
-        let D = new Point(1/phi, phi, 0);
-        let E = new Point(1, 1, 1);
-        let L = new Point(1, 1, -1);
-        let F = new Point(0, 1/phi, phi);
-        let K = new Point(0, 1/phi, -phi);
-        let G = new Point(-1, 1, 1);
-        let H = new Point(-phi, 0, 1/phi);
-        let P = Point.avg([A, B, C, D, E]);
-        let Q = Point.avg([A, F, G, H, E]);
-        let R = Point.avg([E, D, L, K, F]);
-        let poly = new Polyhedron("Rectified rhombic triacontahedron", this.paper);
-        poly.addPolygon("pentagon", Polygon.spherical(
-            [Point.avg([P,A]), Point.avg([P,B]), Point.avg([P,C]), 
-             Point.avg([P,D]), Point.avg([P,E])], radius), 12);
-        poly.addPolygon("square", Polygon.spherical(
-            [Point.avg([Q,E]), Point.avg([Q,A]), Point.avg([P,A]), Point.avg([P,E])], radius
-        ), 30);
-        poly.addPolygon("triangle", Polygon.spherical([
-            Point.avg([E,Q]), Point.avg([E,P]), Point.avg([E,R])
-        ], radius), 20);
+    static truncatedOctahedronAndDual(radius: number) {
+        function p(x: number, y: number, z: number): Point {
+            return new Point(x, y, z);
+        }
+        let poly = new Polyhedron("Truncated octahedron", this.paper);
+        poly.addPolygon("square", Polygon.sphericalWithCenter(p(0,4,0), [
+            p(1,4,0), p(0,4,1), p(-1,4,0), p(0,4,-1)
+        ], radius), 6);
+        poly.addPolygon("triangle", Polygon.sphericalWithCenter(p(0,4,2), [
+            p(1,4,0), p(0,3,3), p(-1,4,0)
+        ], radius), 12);
+        poly.addPolygon("hexagon", Polygon.sphericalWithCenter(p(4,4,4), [
+            p(3,3,0), p(1,4,1), p(0,3,3), p(1,1,4), p(3,0,3), p(4,1,1)
+        ], radius), 8);
     }
 
     static truncatedIcosahedron(radius: number): void {
@@ -126,9 +115,9 @@ class Polyhedra {
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).renderHexa(this.paper);
-        this.rectifiedRhombicTriacontahedron(80);
+        this.truncatedOctahedronAndDual(65);
         this.truncatedIcosahedron(60);
-        new Torus(40, 80, 4, 16).renderQuad(this.paper);
+        new Torus(40, 100, 4, 16).renderQuad(this.paper);
     }
 }
 

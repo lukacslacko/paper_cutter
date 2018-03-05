@@ -83,37 +83,40 @@ var DXFModule = /** @class */ (function () {
     return DXFModule;
 }());
 var Paper = /** @class */ (function () {
-    function Paper(width, height, margin, gap) {
+    function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
         this.width = width;
         this.height = height;
-        this.margin = margin;
+        this.left_margin = left_margin;
+        this.right_margin = right_margin;
+        this.top_margin = top_margin;
+        this.bottom_margin = bottom_margin;
         this.gap = gap;
         this.dxf = new DXF();
         this.num = 0;
     }
     Paper.prototype.copy = function () {
-        return new Paper(this.width, this.height, this.margin, this.gap);
+        return new Paper(this.width, this.height, this.left_margin, this.right_margin, this.top_margin, this.bottom_margin, this.gap);
     };
     Paper.A4 = function () {
-        return new Paper(210, 297, 10, 5);
+        return new Paper(210, 297, 10, 10, 5, 15, 5);
     };
     Paper.prototype.fill = function (piece, num) {
         this.num = num;
         var w = piece.maxX - piece.minX;
         var h = piece.maxY - piece.minY;
         piece = piece.shift(-piece.minX, -piece.minY);
-        var x = this.margin;
-        var y = this.margin;
+        var x = this.left_margin;
+        var y = this.top_margin;
         while (num > 0) {
             piece = piece.shift(x, y);
             this.dxf.add(piece);
             --num;
             piece = piece.shift(-x, -y);
             x += w + this.gap;
-            if (x + w + this.margin > this.width) {
-                x = this.margin;
+            if (x + w + this.right_margin > this.width) {
+                x = this.left_margin;
                 y += h + this.gap;
-                if (y + h + this.margin > this.height) {
+                if (y + h + this.bottom_margin > this.height) {
                     return;
                 }
             }
@@ -264,6 +267,16 @@ var Point = /** @class */ (function () {
     };
     return Point;
 }());
+var Segment = /** @class */ (function () {
+    function Segment(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+    Segment.prototype.intersect = function (other) {
+        return this.b.cross(this.a).cross(other.a.cross(other.b));
+    };
+    return Segment;
+}());
 var PlanarPoint = /** @class */ (function () {
     function PlanarPoint(x, y) {
         this.x = x;
@@ -368,28 +381,20 @@ var Polyhedra = /** @class */ (function () {
         poly.addPolygon("square", Polygon.spherical(square, radius), 6);
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 24);
     };
-    Polyhedra.rectifiedRhombicTriacontahedron = function (radius) {
-        var phi = (Math.sqrt(5) - 1) / 2;
-        var A = new Point(phi, 0, 1 / phi);
-        var B = new Point(1, -1, 1);
-        var C = new Point(1 / phi, -phi, 0);
-        var D = new Point(1 / phi, phi, 0);
-        var E = new Point(1, 1, 1);
-        var L = new Point(1, 1, -1);
-        var F = new Point(0, 1 / phi, phi);
-        var K = new Point(0, 1 / phi, -phi);
-        var G = new Point(-1, 1, 1);
-        var H = new Point(-phi, 0, 1 / phi);
-        var P = Point.avg([A, B, C, D, E]);
-        var Q = Point.avg([A, F, G, H, E]);
-        var R = Point.avg([E, D, L, K, F]);
-        var poly = new Polyhedron("Rectified rhombic triacontahedron", this.paper);
-        poly.addPolygon("pentagon", Polygon.spherical([Point.avg([P, A]), Point.avg([P, B]), Point.avg([P, C]),
-            Point.avg([P, D]), Point.avg([P, E])], radius), 12);
-        poly.addPolygon("square", Polygon.spherical([Point.avg([Q, E]), Point.avg([Q, A]), Point.avg([P, A]), Point.avg([P, E])], radius), 30);
-        poly.addPolygon("triangle", Polygon.spherical([
-            Point.avg([E, Q]), Point.avg([E, P]), Point.avg([E, R])
-        ], radius), 20);
+    Polyhedra.truncatedOctahedronAndDual = function (radius) {
+        function p(x, y, z) {
+            return new Point(x, y, z);
+        }
+        var poly = new Polyhedron("Truncated octahedron", this.paper);
+        poly.addPolygon("square", Polygon.sphericalWithCenter(p(0, 4, 0), [
+            p(1, 4, 0), p(0, 4, 1), p(-1, 4, 0), p(0, 4, -1)
+        ], radius), 6);
+        poly.addPolygon("triangle", Polygon.sphericalWithCenter(p(0, 4, 2), [
+            p(1, 4, 0), p(0, 3, 3), p(-1, 4, 0)
+        ], radius), 12);
+        poly.addPolygon("hexagon", Polygon.sphericalWithCenter(p(4, 4, 4), [
+            p(3, 3, 0), p(1, 4, 1), p(0, 3, 3), p(1, 1, 4), p(3, 0, 3), p(4, 1, 1)
+        ], radius), 8);
     };
     Polyhedra.truncatedIcosahedron = function (radius) {
         var phi = (Math.sqrt(5) + 1) / 2;
@@ -410,9 +415,9 @@ var Polyhedra = /** @class */ (function () {
         this.rectifiedTruncatedIcosahedron(110);
         this.rectifiedSnubCube(80);
         new Torus(50, 100, 4, 12).renderHexa(this.paper);
-        this.rectifiedRhombicTriacontahedron(80);
+        this.truncatedOctahedronAndDual(65);
         this.truncatedIcosahedron(60);
-        new Torus(40, 80, 4, 16).renderQuad(this.paper);
+        new Torus(40, 100, 4, 16).renderQuad(this.paper);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;

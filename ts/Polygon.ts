@@ -155,6 +155,14 @@ class Point {
     }
 }
 
+class Segment {
+    constructor(public a: Point, public b: Point) {}
+
+    public intersect(other: Segment): Point {
+        return this.b.cross(this.a).cross(other.a.cross(other.b));
+    }
+}
+
 class PlanarPoint {
     constructor(public x: number, public y: number) {}
 

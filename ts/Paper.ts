@@ -3,14 +3,18 @@ class Paper {
     private num: number = 0;
 
     constructor(public width: number, public height: number, 
-                public margin: number, public gap: number) {}
+                public left_margin: number, public right_margin: number,
+                public top_margin: number, public bottom_margin: number,
+                public gap: number) {}
 
     public copy(): Paper {
-        return new Paper(this.width, this.height, this.margin, this.gap);
+        return new Paper(this.width, this.height, 
+                         this.left_margin, this.right_margin,
+                         this.top_margin, this.bottom_margin, this.gap);
     }
     
     public static A4(): Paper {
-        return new Paper(210, 297, 10, 5);
+        return new Paper(210, 297, 10, 10, 5, 15, 5);
     }
 
     public fill(piece: DXFModule, num: number): void {
@@ -18,18 +22,18 @@ class Paper {
         let w = piece.maxX - piece.minX;
         let h = piece.maxY - piece.minY;
         piece = piece.shift(-piece.minX, -piece.minY);
-        let x = this.margin;
-        let y = this.margin;
+        let x = this.left_margin;
+        let y = this.top_margin;
         while (num > 0) {
             piece = piece.shift(x, y);
             this.dxf.add(piece);
             --num;
             piece = piece.shift(-x, -y);
             x += w + this.gap;
-            if (x + w + this.margin > this.width) {
-                x = this.margin;
+            if (x + w + this.right_margin > this.width) {
+                x = this.left_margin;
                 y += h + this.gap;
-                if (y + h + this.margin > this.height) {
+                if (y + h + this.bottom_margin > this.height) {
                     return;
                 }
             }
