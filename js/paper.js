@@ -390,8 +390,8 @@ var Polyhedra = /** @class */ (function () {
             p(1, 4, 0), p(0, 4, 1), p(-1, 4, 0), p(0, 4, -1)
         ], radius), 6);
         poly.addPolygon("triangle", Polygon.sphericalWithCenter(p(0, 4, 2), [
-            p(1, 4, 0), p(0, 3, 3), p(-1, 4, 0)
-        ], radius), 12);
+            p(1, 4, 1), p(-1, 4, 1), p(0, 3, 3)
+        ], radius), 24);
         poly.addPolygon("hexagon", Polygon.sphericalWithCenter(p(4, 4, 4), [
             p(3, 3, 0), p(1, 4, 1), p(0, 3, 3), p(1, 1, 4), p(3, 0, 3), p(4, 1, 1)
         ], radius), 8);
