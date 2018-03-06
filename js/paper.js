@@ -443,7 +443,7 @@ var Polyhedra = /** @class */ (function () {
         this.truncatedIcosahedron(60);
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
-        this.rotateSin(70, 35, 140, 6, 7, 2);
+        this.rotateSin(70, 35, 80, 6, 7, 2);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
