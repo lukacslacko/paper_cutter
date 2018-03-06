@@ -50,6 +50,12 @@ class Polygon {
     }
 
     private drawHoles(folded: PlanarPoint[], dxf: DXFModule): void {
+        dxf.line(
+            folded[0].x, folded[0].y - this.hole / 3, 
+            folded[0].x, folded[0].y + this.hole / 3);
+        dxf.line(
+            folded[1].x - this.hole / 3, folded[1].y,
+            folded[1].x + this.hole / 3, folded[1].y);
         for (let p of folded) {
             for (let i = 0; i < 2 * this.circle; ++i) {
                 let a = i * Math.PI / this.circle;

@@ -175,6 +175,8 @@ var Polygon = /** @class */ (function () {
         return folded;
     };
     Polygon.prototype.drawHoles = function (folded, dxf) {
+        dxf.line(folded[0].x, folded[0].y - this.hole / 3, folded[0].x, folded[0].y + this.hole / 3);
+        dxf.line(folded[1].x - this.hole / 3, folded[1].y, folded[1].x + this.hole / 3, folded[1].y);
         for (var _i = 0, folded_1 = folded; _i < folded_1.length; _i++) {
             var p = folded_1[_i];
             for (var i = 0; i < 2 * this.circle; ++i) {
