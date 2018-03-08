@@ -134,9 +134,6 @@ var Paper = /** @class */ (function () {
 var Polygon = /** @class */ (function () {
     function Polygon(center, normal, points) {
         this.center = center;
-        this.circle = 12;
-        this.hole = 3;
-        this.width = 10;
         this.normal = normal.copy().normalize(1);
         this.points = new Array();
         for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
@@ -175,14 +172,14 @@ var Polygon = /** @class */ (function () {
         return folded;
     };
     Polygon.prototype.drawHoles = function (folded, dxf) {
-        dxf.line(folded[0].x, folded[0].y - this.hole / 3, folded[0].x, folded[0].y + this.hole / 3);
-        dxf.line(folded[1].x - this.hole / 3, folded[1].y, folded[1].x + this.hole / 3, folded[1].y);
+        dxf.line(folded[0].x, folded[0].y - Polygon.hole / 3, folded[0].x, folded[0].y + Polygon.hole / 3);
+        dxf.line(folded[1].x - Polygon.hole / 3, folded[1].y, folded[1].x + Polygon.hole / 3, folded[1].y);
         for (var _i = 0, folded_1 = folded; _i < folded_1.length; _i++) {
             var p = folded_1[_i];
-            for (var i = 0; i < 2 * this.circle; ++i) {
-                var a = i * Math.PI / this.circle;
-                var b = a + Math.PI / this.circle;
-                dxf.line(p.x + this.hole / 2 * Math.cos(a), p.y + this.hole / 2 * Math.sin(a), p.x + this.hole / 2 * Math.cos(b), p.y + this.hole / 2 * Math.sin(b));
+            for (var i = 0; i < 2 * Polygon.circle; ++i) {
+                var a = i * Math.PI / Polygon.circle;
+                var b = a + Math.PI / Polygon.circle;
+                dxf.line(p.x + Polygon.hole / 2 * Math.cos(a), p.y + Polygon.hole / 2 * Math.sin(a), p.x + Polygon.hole / 2 * Math.cos(b), p.y + Polygon.hole / 2 * Math.sin(b));
             }
         }
     };
@@ -190,17 +187,17 @@ var Polygon = /** @class */ (function () {
         var a = p.copy().normalize(1);
         var b = q.copy().normalize(1);
         var ab = a.dot(b);
-        var alpha = this.width / 2 / Math.sqrt(1 - ab * ab);
+        var alpha = Polygon.width / 2 / Math.sqrt(1 - ab * ab);
         var t = new PlanarPoint(alpha * (a.x + b.x), alpha * (a.y + b.y));
         var beta = alpha * (1 + ab);
         var u = new PlanarPoint(t.x - beta * b.x, t.y - beta * b.y);
         var v = new PlanarPoint(t.x - beta * a.x, t.y - beta * a.y);
         dxf.line(t.x, t.y, q.x + u.x, q.y + u.y);
         dxf.line(t.x, t.y, p.x + v.x, p.y + v.y);
-        for (var i = 0; i < this.circle; ++i) {
-            var x = i * Math.PI / this.circle;
-            var y = x + Math.PI / this.circle;
-            dxf.line(q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * this.width / 2, q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * this.width / 2, q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * this.width / 2, q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * this.width / 2);
+        for (var i = 0; i < Polygon.circle; ++i) {
+            var x = i * Math.PI / Polygon.circle;
+            var y = x + Math.PI / Polygon.circle;
+            dxf.line(q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * Polygon.width / 2, q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * Polygon.width / 2, q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * Polygon.width / 2, q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * Polygon.width / 2);
         }
     };
     Polygon.prototype.drawEdges = function (folded, dxf) {
@@ -220,6 +217,9 @@ var Polygon = /** @class */ (function () {
         this.drawEdges(folded, dxf);
         return dxf;
     };
+    Polygon.circle = 12;
+    Polygon.hole = 3;
+    Polygon.width = 10;
     return Polygon;
 }());
 var Point = /** @class */ (function () {
@@ -434,6 +434,11 @@ var Polyhedra = /** @class */ (function () {
             ]), nlng * num);
         }
     };
+    Polyhedra.conicalCube = function (r) {
+        var poly = new Polyhedron("Conical cube", this.paper);
+        var face = SphericalCircle.regularPolygon(r, Math.sqrt(2 / 3) * r, 4);
+        poly.addDxf("square", face, 6);
+    };
     Polyhedra.render = function () {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -446,6 +451,7 @@ var Polyhedra = /** @class */ (function () {
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
         this.rotateSin(70, 35, 80, 6, 7, 2);
+        this.conicalCube(25);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;
@@ -468,14 +474,62 @@ var Polyhedron = /** @class */ (function () {
         top.appendChild(this.content);
     }
     Polyhedron.prototype.addPolygon = function (title, polygon, num) {
+        this.addDxf(title, polygon.render(), num);
+    };
+    Polyhedron.prototype.addDxf = function (title, dxf, num) {
         var current = this.paper.copy();
-        current.fill(polygon.render(), num);
+        current.fill(dxf, num);
         var page = document.createElement("div");
         page.setAttribute("id", "polygon" + this.name + title);
         this.content.appendChild(page);
         current.addToDiv(this.name, title, page);
     };
     return Polyhedron;
+}());
+var SphericalCircle = /** @class */ (function () {
+    function SphericalCircle() {
+    }
+    SphericalCircle.drawHole = function (dxf, radius, angle) {
+        var x = radius * Math.cos(angle);
+        var y = radius * Math.sin(angle);
+        for (var i = 0; i < 2 * Polygon.circle; ++i) {
+            var a = i * Math.PI / Polygon.circle;
+            var b = a + Math.PI / Polygon.circle;
+            dxf.line(x + Polygon.hole / 2 * Math.cos(a), y + Polygon.hole / 2 * Math.sin(a), x + Polygon.hole / 2 * Math.cos(b), y + Polygon.hole / 2 * Math.sin(b));
+        }
+    };
+    SphericalCircle.drawCap = function (dxf, radius, angle, offset) {
+        var x = radius * Math.cos(angle);
+        var y = radius * Math.sin(angle);
+        for (var i = 0; i < Polygon.circle; ++i) {
+            var a = i * Math.PI / Polygon.circle + offset;
+            var b = a + Math.PI / Polygon.circle;
+            dxf.line(x + Polygon.width / 2 * Math.cos(a), y + Polygon.width / 2 * Math.sin(a), x + Polygon.width / 2 * Math.cos(b), y + Polygon.width / 2 * Math.sin(b));
+        }
+    };
+    SphericalCircle.drawArc = function (dxf, radius, angle) {
+        var da = angle / Math.ceil(radius);
+        for (var a = 0; a < angle; a += da) {
+            var b = a + da;
+            dxf.line(radius * Math.cos(a), radius * Math.sin(a), radius * Math.cos(b), radius * Math.sin(b));
+        }
+    };
+    SphericalCircle.regularPolygon = function (sphere_radius, polygon_radius, num_sides) {
+        var factor = polygon_radius / sphere_radius;
+        factor = Math.sqrt(1 - factor * factor);
+        var alpha = 2 * Math.PI * factor;
+        var cone_radius = polygon_radius / factor;
+        var dxf = new DXFModule();
+        for (var i = 0; i <= num_sides; ++i) {
+            this.drawHole(dxf, cone_radius, i * alpha / num_sides);
+        }
+        this.drawArc(dxf, cone_radius - Polygon.width / 2, alpha);
+        this.drawArc(dxf, cone_radius + Polygon.width / 2, alpha);
+        this.drawCap(dxf, cone_radius, 0, Math.PI);
+        this.drawCap(dxf, cone_radius, alpha, alpha);
+        return dxf;
+    };
+    return SphericalCircle;
 }());
 var Torus = /** @class */ (function () {
     function Torus(rho, R, n1, n2) {

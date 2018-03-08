@@ -16,8 +16,12 @@ class Polyhedron {
     }
 
     public addPolygon(title: string, polygon: Polygon, num: number) {
+        this.addDxf(title, polygon.render(), num);
+    }
+
+    public addDxf(title: string, dxf: DXFModule, num: number) {
         let current = this.paper.copy();
-        current.fill(polygon.render(), num);
+        current.fill(dxf, num);
         let page = document.createElement("div");
         page.setAttribute("id", "polygon" + this.name + title);
         this.content.appendChild(page);

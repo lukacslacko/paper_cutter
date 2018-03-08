@@ -1,7 +1,7 @@
 class Polygon {
-    private circle = 12;
-    private hole = 3;
-    private width = 10;
+    public static readonly circle = 12;
+    public static readonly hole = 3;
+    public static readonly width = 10;
     private normal: Point;
     private points: Point[];
 
@@ -51,19 +51,19 @@ class Polygon {
 
     private drawHoles(folded: PlanarPoint[], dxf: DXFModule): void {
         dxf.line(
-            folded[0].x, folded[0].y - this.hole / 3, 
-            folded[0].x, folded[0].y + this.hole / 3);
+            folded[0].x, folded[0].y - Polygon.hole / 3, 
+            folded[0].x, folded[0].y + Polygon.hole / 3);
         dxf.line(
-            folded[1].x - this.hole / 3, folded[1].y,
-            folded[1].x + this.hole / 3, folded[1].y);
+            folded[1].x - Polygon.hole / 3, folded[1].y,
+            folded[1].x + Polygon.hole / 3, folded[1].y);
         for (let p of folded) {
-            for (let i = 0; i < 2 * this.circle; ++i) {
-                let a = i * Math.PI / this.circle;
-                let b = a + Math.PI / this.circle;
-                dxf.line(p.x + this.hole / 2 * Math.cos(a),
-                         p.y + this.hole / 2 * Math.sin(a),
-                         p.x + this.hole / 2 * Math.cos(b),
-                         p.y + this.hole / 2 * Math.sin(b));
+            for (let i = 0; i < 2 * Polygon.circle; ++i) {
+                let a = i * Math.PI / Polygon.circle;
+                let b = a + Math.PI / Polygon.circle;
+                dxf.line(p.x + Polygon.hole / 2 * Math.cos(a),
+                         p.y + Polygon.hole / 2 * Math.sin(a),
+                         p.x + Polygon.hole / 2 * Math.cos(b),
+                         p.y + Polygon.hole / 2 * Math.sin(b));
             }
         }
     }
@@ -72,21 +72,21 @@ class Polygon {
         let a = p.copy().normalize(1);
         let b = q.copy().normalize(1);
         let ab = a.dot(b);
-        let alpha = this.width / 2 / Math.sqrt(1 - ab*ab);
+        let alpha = Polygon.width / 2 / Math.sqrt(1 - ab*ab);
         let t = new PlanarPoint(alpha * (a.x + b.x), alpha * (a.y + b.y));
         let beta = alpha * (1 + ab);
         let u = new PlanarPoint(t.x - beta * b.x, t.y - beta * b.y);
         let v = new PlanarPoint(t.x - beta * a.x, t.y - beta * a.y);
         dxf.line(t.x, t.y, q.x + u.x, q.y + u.y);
         dxf.line(t.x, t.y, p.x + v.x, p.y + v.y);
-        for (let i = 0; i < this.circle; ++i) {
-            let x = i * Math.PI / this.circle;
-            let y = x + Math.PI / this.circle;
+        for (let i = 0; i < Polygon.circle; ++i) {
+            let x = i * Math.PI / Polygon.circle;
+            let y = x + Math.PI / Polygon.circle;
             dxf.line(
-                q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * this.width / 2,
-                q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * this.width / 2,
-                q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * this.width / 2,
-                q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * this.width / 2);
+                q.x + Math.cos(x) * u.x + Math.sin(x) * b.x * Polygon.width / 2,
+                q.y + Math.cos(x) * u.y + Math.sin(x) * b.y * Polygon.width / 2,
+                q.x + Math.cos(y) * u.x + Math.sin(y) * b.x * Polygon.width / 2,
+                q.y + Math.cos(y) * u.y + Math.sin(y) * b.y * Polygon.width / 2);
         }
     }
 

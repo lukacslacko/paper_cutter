@@ -139,6 +139,12 @@ class Polyhedra {
         }
     }
 
+    static conicalCube(r: number): void {
+        let poly = new Polyhedron("Conical cube", this.paper);
+        let face = SphericalCircle.regularPolygon(r, Math.sqrt(2/3)*r, 4);
+        poly.addDxf("square", face, 6)
+    }
+
     public static render(): void {
         this.cuboctahedron(30);
         this.dodecahedron(50);
@@ -151,6 +157,7 @@ class Polyhedra {
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
         this.rotateSin(70, 35, 80, 6, 7, 2);
+        this.conicalCube(25);
     }
 }
 
