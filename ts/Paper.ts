@@ -14,7 +14,7 @@ class Paper {
     }
     
     public static A4(): Paper {
-        return new Paper(210, 297, 10, 10, 5, 15, 5);
+        return new Paper(210, 297, 5, 5, 5, 15, 5);
     }
 
     public fill(piece: DXFModule, num: number): void {

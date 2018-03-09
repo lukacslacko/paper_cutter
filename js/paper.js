@@ -98,7 +98,7 @@ var Paper = /** @class */ (function () {
         return new Paper(this.width, this.height, this.left_margin, this.right_margin, this.top_margin, this.bottom_margin, this.gap);
     };
     Paper.A4 = function () {
-        return new Paper(210, 297, 10, 10, 5, 15, 5);
+        return new Paper(210, 297, 5, 5, 5, 15, 5);
     };
     Paper.prototype.fill = function (piece, num) {
         this.num = num;
@@ -326,6 +326,26 @@ var Polyhedra = /** @class */ (function () {
             new Point(1 / phi, -phi, 0), new Point(1 / phi, phi, 0)];
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
     };
+    Polyhedra.truncatedDodecahedron = function (radius) {
+        var poly = new Polyhedron("Dodecahedron", this.paper);
+        var phi = (Math.sqrt(5) - 1) / 2;
+        var A = new Point(phi, 0, 1 / phi);
+        var B = new Point(1, 1, 1);
+        var C = new Point(1 / phi, phi, 0);
+        var D = new Point(1 / phi, -phi, 0);
+        var E = new Point(1, -1, 1);
+        var F = new Point(0, 1 / phi, phi);
+        function t(X, Y) {
+            var b = 1 / (1 + Math.cos(Math.PI / 5)) / 2;
+            var a = 1 - b;
+            return new Point(a * X.x + b * Y.x, a * X.y + b * Y.y, a * X.z + b * Y.z);
+        }
+        var decagon = [t(A, B), t(B, A), t(B, C), t(C, B), t(C, D), t(D, C),
+            t(D, E), t(E, D), t(E, A), t(A, E)];
+        poly.addPolygon("decagon", Polygon.spherical(decagon, radius), 12);
+        var triangle = [t(B, A), t(B, F), t(B, C)];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 20);
+    };
     Polyhedra.truncatedCube = function (radius) {
         var poly = new Polyhedron("Truncated cube", this.paper);
         var a = 1 / (1 + Math.sqrt(2));
@@ -452,6 +472,7 @@ var Polyhedra = /** @class */ (function () {
         this.jaaC(70);
         this.rotateSin(70, 35, 80, 6, 7, 2);
         this.conicalCube(50);
+        this.truncatedDodecahedron(73);
     };
     Polyhedra.paper = Paper.A4();
     return Polyhedra;

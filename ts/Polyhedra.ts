@@ -19,6 +19,28 @@ class Polyhedra {
         poly.addPolygon("pentagon", Polygon.spherical(pentagon, radius), 12);
     }
 
+    static truncatedDodecahedron(radius: number): void {
+        let poly = new Polyhedron("Dodecahedron", this.paper);
+        let phi = (Math.sqrt(5) - 1) / 2;
+        let A = new Point(phi, 0, 1/phi);
+        let B = new Point(1, 1, 1);
+        let C = new Point(1/phi, phi, 0);
+        let D = new Point(1/phi, -phi, 0);
+        let E = new Point(1, -1, 1);
+        let F = new Point(0, 1/phi, phi);
+        function t(X: Point, Y: Point): Point {
+            let b = 1 / (1 + Math.cos(Math.PI / 5)) / 2;
+            let a = 1 - b;
+            return new Point(a * X.x + b * Y.x, a * X.y + b * Y.y, a * X.z + b * Y.z);
+        }
+        let decagon = 
+            [t(A,B), t(B,A), t(B,C), t(C,B), t(C,D), t(D,C),
+             t(D,E), t(E,D), t(E,A), t(A,E)];
+        poly.addPolygon("decagon", Polygon.spherical(decagon, radius), 12);
+        let triangle = [t(B,A), t(B,F), t(B,C)];
+        poly.addPolygon("triangle", Polygon.spherical(triangle, radius), 20);
+    }
+
     static truncatedCube(radius: number): void {
         let poly = new Polyhedron("Truncated cube", this.paper);
         let a = 1/(1 + Math.sqrt(2));
@@ -158,6 +180,7 @@ class Polyhedra {
         this.jaaC(70);
         this.rotateSin(70, 35, 80, 6, 7, 2);
         this.conicalCube(50);
+        this.truncatedDodecahedron(73);
     }
 }
 
