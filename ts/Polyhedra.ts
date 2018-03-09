@@ -157,7 +157,7 @@ class Polyhedra {
         new Torus(40, 100, 4, 16).renderQuad(this.paper);
         this.jaaC(70);
         this.rotateSin(70, 35, 80, 6, 7, 2);
-        this.conicalCube(25);
+        this.conicalCube(50);
     }
 }
 
