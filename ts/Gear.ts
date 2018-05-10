@@ -261,7 +261,7 @@ function dense(): GearOptions {
 }
 
 function small(): GearOptions {
-    return new GearOptions(60, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 20, false);
+    return new GearOptions(60, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 10, false);
 }
 
 function denseCircular(): GearOptions {
