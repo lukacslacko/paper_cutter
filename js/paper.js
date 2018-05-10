@@ -82,6 +82,273 @@ var DXFModule = /** @class */ (function () {
     };
     return DXFModule;
 }());
+var Vector = /** @class */ (function () {
+    function Vector(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    Vector.prototype.to = function (other) {
+        return new Vector(other.x - this.x, other.y - this.y);
+    };
+    Vector.prototype.length = function () {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    };
+    Vector.prototype.mul = function (a) {
+        return new Vector(a * this.x, a * this.y);
+    };
+    Vector.prototype.add = function (other) {
+        return new Vector(other.x + this.x, other.y + this.y);
+    };
+    Vector.prototype.normalize = function () {
+        return this.mul(1 / this.length());
+    };
+    Vector.prototype.rotate = function (a) {
+        return new Vector(Math.cos(a) * this.x - Math.sin(a) * this.y, Math.sin(a) * this.x + Math.cos(a) * this.y);
+    };
+    return Vector;
+}());
+var PointAndNormal = /** @class */ (function () {
+    function PointAndNormal(point, normal) {
+        this.point = point;
+        this.normal = normal;
+    }
+    return PointAndNormal;
+}());
+var Canvas = /** @class */ (function () {
+    function Canvas() {
+        this.w = 1000;
+        this.h = 1000;
+        this.canvas = document.createElement("canvas");
+        this.canvas.setAttribute("width", "" + this.w);
+        this.canvas.setAttribute("height", "" + this.h);
+        document.getElementById("canv").appendChild(this.canvas);
+        this.c = this.canvas.getContext("2d");
+        this.dxfModule = new DXFModule();
+    }
+    Canvas.prototype.line = function (from, to, width, color) {
+        console.log(from, to, color);
+        var c = this.c;
+        c.beginPath();
+        c.lineWidth = width;
+        c.strokeStyle = color;
+        c.moveTo(from.x + this.w / 2, from.y + this.h / 2);
+        c.lineTo(to.x + this.w / 2, to.y + this.h / 2);
+        c.stroke();
+        this.dxfModule.line(from.x, from.y, to.x, to.y);
+    };
+    Canvas.prototype.clear = function () {
+        this.c.clearRect(0, 0, this.w, this.h);
+    };
+    return Canvas;
+}());
+var Polyline = /** @class */ (function () {
+    function Polyline(pts) {
+        this.pts = pts;
+        this.lens = new Array(pts.length - 1);
+        this.normals = new Array(pts.length);
+        this.len = 0;
+        for (var i = 0; i < pts.length - 1; ++i) {
+            this.lens[i] = this.len;
+            this.len += pts[i].to(pts[i + 1]).length();
+        }
+        for (var i = 0; i < pts.length; ++i) {
+            var a = (pts.length + i - 1) % pts.length;
+            var b = (i + 1) % pts.length;
+            this.normals[i] = this.pts[a].to(this.pts[b]).rotate(-Math.PI / 2).normalize();
+        }
+    }
+    Polyline.prototype.shift = function (v) {
+        var p = new Array(this.pts.length);
+        for (var i = 0; i < this.pts.length; ++i) {
+            p[i] = this.pts[i].add(v);
+        }
+        return new Polyline(p);
+    };
+    Polyline.prototype.roll = function (s) {
+        var pt = this.along(s);
+        var angle = Math.atan2(pt.point.y, pt.point.x);
+        var p = new Array(this.pts.length);
+        for (var i = 0; i < this.pts.length; ++i) {
+            p[i] = this.pts[i].rotate(angle);
+        }
+        return new Polyline(p);
+    };
+    Polyline.prototype.rollOpposite = function (s) {
+        var pt = this.along(s + this.len / 2);
+        var angle = Math.atan2(pt.point.y, pt.point.x) - Math.PI;
+        var p = new Array(this.pts.length);
+        for (var i = 0; i < this.pts.length; ++i) {
+            p[i] = this.pts[i].rotate(angle);
+        }
+        return new Polyline(p);
+    };
+    Polyline.prototype.along = function (s) {
+        if (s < 0)
+            return this.along(s + this.len);
+        if (s >= this.len)
+            return this.along(s - this.len);
+        var a = 0;
+        var b = this.lens.length;
+        while (b > a + 1) {
+            var c = Math.floor((a + b) / 2);
+            if (this.lens[c] <= s) {
+                a = c;
+            }
+            else {
+                b = c;
+            }
+        }
+        var remainder = s - this.lens[a];
+        var edge = (a + 1 == this.lens.length) ? this.len - this.lens[a] : this.lens[a + 1] - this.lens[a];
+        var f = remainder / edge;
+        if (isNaN(f)) {
+            console.error("f is nan!", isNaN(remainder), isNaN(edge), a, this.lens.length);
+        }
+        return new PointAndNormal(this.pts[a].mul(1 - f).add(this.pts[a + 1].mul(f)), this.normals[a].mul(1 - f).add(this.normals[a + 1].mul(f)).normalize());
+    };
+    Polyline.prototype.cycloid = function (offset, radius, angle) {
+        var base = this.along(offset);
+        var center = base.point.add(base.normal.mul(radius));
+        var sign = radius > 0 ? 1 : -1;
+        return center.add(center.to(base.point).rotate(angle));
+    };
+    return Polyline;
+}());
+var GearOptions = /** @class */ (function () {
+    function GearOptions(small, ecc, speed, teeth, angle, radius, cutout, toothSteps, showCurve) {
+        this.small = small;
+        this.ecc = ecc;
+        this.speed = speed;
+        this.teeth = teeth;
+        this.angle = angle;
+        this.radius = radius;
+        this.cutout = cutout;
+        this.toothSteps = toothSteps;
+        this.showCurve = showCurve;
+    }
+    return GearOptions;
+}());
+var VectorPair = /** @class */ (function () {
+    function VectorPair(start, end) {
+        this.start = start;
+        this.end = end;
+    }
+    return VectorPair;
+}());
+var Gear = /** @class */ (function () {
+    function Gear(poly) {
+        this.poly = poly;
+    }
+    Gear.prototype.render = function (canvas) {
+        for (var i = 0; i < this.poly.pts.length; ++i) {
+            canvas.line(this.poly.pts[i], this.poly.pts[(i + 1) % this.poly.pts.length], 1, "grey");
+        }
+    };
+    Gear.prototype.tooth = function (canvas, offset, side, r, size, cutout, steps, color) {
+        var s = offset;
+        var begin = side == -1 ? -steps : -(1 + cutout) * steps;
+        var beginVec = new Vector(0, 0);
+        var endVec = new Vector(0, 0);
+        for (var i = begin; i < begin + (2 + cutout) * steps; ++i) {
+            var sign = side * (i > 0 ? 1 : -1);
+            var a = size * i / steps;
+            var b = (a + size / steps);
+            var from = this.poly.cycloid(s + r * a, sign * r, sign * a);
+            var to = this.poly.cycloid(s + r * b, sign * r, sign * b);
+            if (i == begin) {
+                beginVec = from;
+            }
+            endVec = to;
+            canvas.line(from, to, 1, color);
+            //canvas.line(this.poly.along(s + r*a).point, this.poly.along(s + r*b).point, 3, color);
+        }
+        return new VectorPair(beginVec, endVec);
+    };
+    Gear.prototype.renderTeethOptions = function (canvas, opt, a, b) {
+        var circum = this.poly.len;
+        var r = opt.radius * circum / opt.teeth / (2 * opt.angle);
+        var begin = new Vector(0, 0);
+        var prevEnd = null;
+        for (var i = 0; i < opt.teeth; ++i) {
+            var up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, a);
+            var down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, b);
+            canvas.line(up.end, down.start, 1, "pink");
+            if (prevEnd != null) {
+                canvas.line(prevEnd, up.start, 1, "pink");
+            }
+            else {
+                begin = up.start;
+            }
+            prevEnd = down.end;
+        }
+        canvas.line(begin, prevEnd, 3, "black");
+    };
+    return Gear;
+}());
+function ellipse(small, ecc, n) {
+    var pts = new Array(n + 1);
+    for (var i = 0; i <= n; ++i) {
+        var a = 2 * Math.PI * i / n;
+        pts[i] = new Vector(small / 2, 0).mul(1 / (1 - ecc * Math.cos(a))).rotate(a);
+    }
+    return new Polyline(pts);
+}
+function gearArcOptions(c, s, opt) {
+    var small = opt.small;
+    var ecc = opt.ecc;
+    var large = small / 2 * (1 / (1 - ecc) + 1 / (1 + ecc));
+    var focus = 1 / 2 * Math.sqrt(large * large - small * small);
+    var e = ellipse(small, ecc, 1000);
+    var e1 = e.roll(s).shift(new Vector(-focus - large / 2, 0));
+    var g1 = new Gear(e1);
+    g1.renderTeethOptions(c, opt, "red", "blue");
+    if (opt.showCurve) {
+        g1.render(c);
+    }
+    var e2 = e.rollOpposite(-s).shift(new Vector(-focus + large / 2, 0));
+    var g2 = new Gear(e2);
+    g2.renderTeethOptions(c, opt, "orange", "green");
+    if (opt.showCurve) {
+        g2.render(c);
+    }
+}
+function singleGear(c, opt) {
+    var small = opt.small;
+    var ecc = opt.ecc;
+    var large = small / 2 * (1 / (1 - ecc) + 1 / (1 + ecc));
+    var focus = 1 / 2 * Math.sqrt(large * large - small * small);
+    var e = ellipse(small, ecc, 1000);
+    var g = new Gear(e);
+    g.renderTeethOptions(c, opt, "red", "blue");
+    var hole = ellipse(1.7, 0, 100);
+    new Gear(hole).render(c);
+    var dxf = new DXF();
+    dxf.add(c.dxfModule);
+    document.getElementById("canv").appendChild(dxf.downloadLink("gear.dxf"));
+}
+function gearStepOptions(c, s, opt) {
+    c.clear();
+    gearArcOptions(c, s, opt);
+    setTimeout(function () { return gearStepOptions(c, s + opt.speed, opt); });
+}
+function dense() {
+    return new GearOptions(300, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
+}
+function small() {
+    return new GearOptions(40, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 20, false);
+}
+function denseCircular() {
+    return new GearOptions(3000, 0.0, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
+}
+function sparse() {
+    return new GearOptions(1000, 0.5, 1, 40, Math.PI / 3, 1, 0.2, 50, false);
+}
+function gearMain() {
+    var c = new Canvas();
+    //gearArcOptions(c, 0, dense());
+    //gearStepOptions(c, 0, denseCircular());
+    singleGear(c, small());
+}
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
         this.width = width;
