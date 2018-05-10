@@ -320,7 +320,7 @@ function singleGear(c, opt) {
     var e = ellipse(small, ecc, 1000);
     var g = new Gear(e);
     g.renderTeethOptions(c, opt, "red", "blue");
-    var hole = ellipse(1.7, 0, 100);
+    var hole = ellipse(3.1, 0, 100);
     new Gear(hole).render(c);
     var dxf = new DXF();
     dxf.add(c.dxfModule);
@@ -335,7 +335,7 @@ function dense() {
     return new GearOptions(300, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
 }
 function small() {
-    return new GearOptions(40, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 20, false);
+    return new GearOptions(60, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 20, false);
 }
 function denseCircular() {
     return new GearOptions(3000, 0.0, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
