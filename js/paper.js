@@ -166,21 +166,13 @@ var Polyline = /** @class */ (function () {
         }
         return new Polyline(p);
     };
-    Polyline.prototype.roll = function (s) {
+    Polyline.prototype.roll = function (s, side) {
         var pt = this.along(s);
         var p = new Array(this.pts.length);
         for (var i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(pt.point.angle());
+            p[i] = this.pts[i].rotate(pt.point.angle() - this.pts[0].angle());
         }
-        return new Polyline(p);
-    };
-    Polyline.prototype.rollOpposite = function (s) {
-        var pt = this.along(s + this.len / 2);
-        var p = new Array(this.pts.length);
-        for (var i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(pt.point.angle() - Math.PI);
-        }
-        return new Polyline(p);
+        return new Polyline(p).shift(new Vector(side * pt.point.length(), 0));
     };
     Polyline.prototype.along = function (s) {
         if (s < 0)
@@ -258,7 +250,7 @@ var Polyline = /** @class */ (function () {
             if (theta >= 2 * Math.PI)
                 break;
             var r = rhoSmall - p.length();
-            newPts.push(new Vector(r * Math.cos(theta), r * Math.sin(theta)));
+            newPts.push(new Vector(-r * Math.cos(theta), r * Math.sin(theta)));
             var dphi = q.angle() - p.angle();
             if (dphi < 0)
                 dphi += 2 * Math.PI;
@@ -269,14 +261,12 @@ var Polyline = /** @class */ (function () {
     return Polyline;
 }());
 var GearOptions = /** @class */ (function () {
-    function GearOptions(small, ecc, speed, teeth, angle, radius, cutout, toothSteps, showCurve) {
-        this.small = small;
-        this.ecc = ecc;
-        this.speed = speed;
+    function GearOptions(teeth, angle, radius, top, down, toothSteps, showCurve) {
         this.teeth = teeth;
         this.angle = angle;
         this.radius = radius;
-        this.cutout = cutout;
+        this.top = top;
+        this.down = down;
         this.toothSteps = toothSteps;
         this.showCurve = showCurve;
     }
@@ -298,12 +288,12 @@ var Gear = /** @class */ (function () {
             canvas.line(this.poly.pts[i], this.poly.pts[(i + 1) % this.poly.pts.length], 1, "grey");
         }
     };
-    Gear.prototype.tooth = function (canvas, offset, side, r, size, cutout, steps, color) {
+    Gear.prototype.tooth = function (canvas, offset, side, r, size, top, down, steps, color) {
         var s = offset;
-        var begin = side == -1 ? -steps : -(1 + cutout) * steps;
+        var begin = side == -1 ? -top * steps : -down * steps;
         var beginVec = new Vector(0, 0);
         var endVec = new Vector(0, 0);
-        for (var i = begin; i < begin + (2 + cutout) * steps; ++i) {
+        for (var i = begin; i < begin + (top + down) * steps; ++i) {
             var sign = side * (i > 0 ? 1 : -1);
             var a = size * i / steps;
             var b = (a + size / steps);
@@ -324,8 +314,8 @@ var Gear = /** @class */ (function () {
         var begin = new Vector(0, 0);
         var prevEnd = null;
         for (var i = 0; i < opt.teeth; ++i) {
-            var up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, colorA);
-            var down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, colorB);
+            var up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.top, opt.down, opt.toothSteps, colorA);
+            var down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.top, opt.down, opt.toothSteps, colorB);
             canvas.line(up.end, down.start, 1, "pink");
             if (prevEnd != null) {
                 canvas.line(prevEnd, up.start, 1, "pink");
@@ -347,55 +337,13 @@ function ellipse(small, ecc, n) {
     }
     return new Polyline(pts);
 }
-function gearArcOptions(c, s, opt) {
-    var small = opt.small;
-    var ecc = opt.ecc;
-    var large = small / 2 * (1 / (1 - ecc) + 1 / (1 + ecc));
-    var focus = 1 / 2 * Math.sqrt(large * large - small * small);
-    var e = ellipse(small, ecc, 1000);
-    var e1 = e.roll(s).shift(new Vector(-focus - large / 2, 0));
-    var g1 = new Gear(e1);
-    g1.renderTeethOptions(c, opt, "red", "blue");
-    if (opt.showCurve) {
-        g1.render(c);
-    }
-    var e2 = e.rollOpposite(-s).shift(new Vector(-focus + large / 2, 0));
-    var g2 = new Gear(e2);
-    g2.renderTeethOptions(c, opt, "orange", "green");
-    if (opt.showCurve) {
-        g2.render(c);
-    }
-}
-function singleGear(c, opt) {
-    var small = opt.small;
-    var ecc = opt.ecc;
-    var large = small / 2 * (1 / (1 - ecc) + 1 / (1 + ecc));
-    var focus = 1 / 2 * Math.sqrt(large * large - small * small);
-    var e = ellipse(small, ecc, 1000);
-    var g = new Gear(e);
-    g.renderTeethOptions(c, opt, "red", "blue");
-    var hole = ellipse(3.1, 0, 100);
-    new Gear(hole).render(c);
-    var dxf = new DXF();
-    dxf.add(c.dxfModule);
-    document.getElementById("canv").appendChild(dxf.downloadLink("gear.dxf"));
-}
-function gearStepOptions(c, s, opt) {
+function animate(c, e, f, s, eOpt, fOpt) {
     c.clear();
-    gearArcOptions(c, s, opt);
-    setTimeout(function () { return gearStepOptions(c, s + opt.speed, opt); });
-}
-function dense() {
-    return new GearOptions(300, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
-}
-function small() {
-    return new GearOptions(60, 0.5, 1, 30, Math.PI / 6, 2, 0.75, 10, false);
-}
-function denseCircular() {
-    return new GearOptions(3000, 0.0, 1, 30, Math.PI / 6, 2, 0.75, 50, false);
-}
-function sparse() {
-    return new GearOptions(1000, 0.5, 1, 40, Math.PI / 3, 1, 0.2, 50, false);
+    var eg = new Gear(e.roll(s, -1));
+    eg.renderTeethOptions(c, eOpt, "red", "blue");
+    var fg = new Gear(f.roll(s, 1));
+    fg.renderTeethOptions(c, fOpt, "orange", "green");
+    setTimeout(function () { return animate(c, e, f, s + 1, eOpt, fOpt); }, 10);
 }
 function gearMain() {
     var c = new Canvas();
@@ -403,10 +351,8 @@ function gearMain() {
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
     var e = ellipse(100, 0.3, 10000);
-    new Gear(e).renderTeethOptions(c, new GearOptions(0, 0, 1, 15, Math.PI / 6, 2, 0.5, 40, false), "red", "blue");
     var f = e.rollingOpposite(2 / 3 * Math.PI);
-    //new Gear(f).render(c);
-    new Gear(f).renderTeethOptions(c, new GearOptions(0, 0, 1, 45, Math.PI / 6, 2, 0.5, 40, !true), "orange", "green");
+    animate(c, e, f, 0, new GearOptions(15, Math.PI / 6, 1.5, 1, 2, 40, true), new GearOptions(45, Math.PI / 6, 1.5, 2, 1, 40, true));
 }
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
