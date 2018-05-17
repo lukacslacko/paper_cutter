@@ -105,6 +105,9 @@ var Vector = /** @class */ (function () {
     Vector.prototype.rotate = function (a) {
         return new Vector(Math.cos(a) * this.x - Math.sin(a) * this.y, Math.sin(a) * this.x + Math.cos(a) * this.y);
     };
+    Vector.prototype.angle = function () {
+        return Math.atan2(this.y, this.x);
+    };
     return Vector;
 }());
 var PointAndNormal = /** @class */ (function () {
@@ -126,7 +129,6 @@ var Canvas = /** @class */ (function () {
         this.dxfModule = new DXFModule();
     }
     Canvas.prototype.line = function (from, to, width, color) {
-        console.log(from, to, color);
         var c = this.c;
         c.beginPath();
         c.lineWidth = width;
@@ -166,19 +168,17 @@ var Polyline = /** @class */ (function () {
     };
     Polyline.prototype.roll = function (s) {
         var pt = this.along(s);
-        var angle = Math.atan2(pt.point.y, pt.point.x);
         var p = new Array(this.pts.length);
         for (var i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(angle);
+            p[i] = this.pts[i].rotate(pt.point.angle());
         }
         return new Polyline(p);
     };
     Polyline.prototype.rollOpposite = function (s) {
         var pt = this.along(s + this.len / 2);
-        var angle = Math.atan2(pt.point.y, pt.point.x) - Math.PI;
         var p = new Array(this.pts.length);
         for (var i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(angle);
+            p[i] = this.pts[i].rotate(pt.point.angle() - Math.PI);
         }
         return new Polyline(p);
     };
@@ -211,6 +211,60 @@ var Polyline = /** @class */ (function () {
         var center = base.point.add(base.normal.mul(radius));
         var sign = radius > 0 ? 1 : -1;
         return center.add(center.to(base.point).rotate(angle));
+    };
+    Polyline.prototype.rollingAngle = function (rho) {
+        var theta = 0;
+        var phi = 0;
+        for (var i = 0; i < this.pts.length - 1; ++i) {
+            var p = this.pts[i];
+            var q = this.pts[i + 1];
+            var r = (p.length() + q.length()) / 2;
+            var dphi = q.angle() - p.angle();
+            if (dphi < 0)
+                dphi += 2 * Math.PI;
+            theta += dphi * r / (rho - r);
+            phi += dphi;
+        }
+        console.log(phi);
+        return theta;
+    };
+    Polyline.prototype.rollingOpposite = function (targetAngle) {
+        var maxR = 0;
+        for (var _i = 0, _a = this.pts; _i < _a.length; _i++) {
+            var p = _a[_i];
+            var r = p.length();
+            if (r > maxR)
+                maxR = r;
+        }
+        var rhoSmall = maxR + 0.01;
+        var rhoBig = 10 * maxR;
+        console.log(maxR, rhoSmall, rhoBig);
+        while (rhoBig > rhoSmall + 0.01) {
+            var rho = (rhoSmall + rhoBig) / 2;
+            console.log(rho, this.rollingAngle(rho));
+            if (this.rollingAngle(rho) > targetAngle) {
+                rhoSmall = rho;
+            }
+            else {
+                rhoBig = rho;
+            }
+        }
+        console.log(maxR, rhoSmall, rhoBig);
+        var newPts = new Array();
+        var theta = 0;
+        for (var i = 0;; ++i) {
+            var p = this.pts[i % this.pts.length];
+            var q = this.pts[(i + 1) % this.pts.length];
+            if (theta >= 2 * Math.PI)
+                break;
+            var r = rhoSmall - p.length();
+            newPts.push(new Vector(r * Math.cos(theta), r * Math.sin(theta)));
+            var dphi = q.angle() - p.angle();
+            if (dphi < 0)
+                dphi += 2 * Math.PI;
+            theta += dphi * p.length() / (rhoSmall - p.length());
+        }
+        return new Polyline(newPts);
     };
     return Polyline;
 }());
@@ -264,14 +318,14 @@ var Gear = /** @class */ (function () {
         }
         return new VectorPair(beginVec, endVec);
     };
-    Gear.prototype.renderTeethOptions = function (canvas, opt, a, b) {
+    Gear.prototype.renderTeethOptions = function (canvas, opt, colorA, colorB) {
         var circum = this.poly.len;
         var r = opt.radius * circum / opt.teeth / (2 * opt.angle);
         var begin = new Vector(0, 0);
         var prevEnd = null;
         for (var i = 0; i < opt.teeth; ++i) {
-            var up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, a);
-            var down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, b);
+            var up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, colorA);
+            var down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, colorB);
             canvas.line(up.end, down.start, 1, "pink");
             if (prevEnd != null) {
                 canvas.line(prevEnd, up.start, 1, "pink");
@@ -347,7 +401,12 @@ function gearMain() {
     var c = new Canvas();
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
-    singleGear(c, small());
+    //singleGear(c, small());
+    var e = ellipse(100, 0.3, 10000);
+    new Gear(e).renderTeethOptions(c, new GearOptions(0, 0, 1, 15, Math.PI / 6, 2, 0.5, 40, false), "red", "blue");
+    var f = e.rollingOpposite(2 / 3 * Math.PI);
+    //new Gear(f).render(c);
+    new Gear(f).renderTeethOptions(c, new GearOptions(0, 0, 1, 45, Math.PI / 6, 2, 0.5, 40, !true), "orange", "green");
 }
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {

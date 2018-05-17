@@ -24,6 +24,10 @@ class Vector {
     rotate(a: number): Vector {
         return new Vector(Math.cos(a) * this.x - Math.sin(a) * this.y, Math.sin(a) * this.x + Math.cos(a) * this.y);
     }
+
+    angle(): number {
+        return Math.atan2(this.y, this.x);
+    }
 }
 
 class PointAndNormal {
@@ -49,7 +53,6 @@ class Canvas {
     }
 
     line(from: Vector, to: Vector, width: number, color: string): void {
-        console.log(from, to, color);
         let c = this.c;
         c.beginPath();
         c.lineWidth = width;
@@ -94,20 +97,18 @@ class Polyline {
 
     roll(s: number): Polyline {
         let pt = this.along(s);
-        let angle = Math.atan2(pt.point.y, pt.point.x);
         let p = new Array<Vector>(this.pts.length);
         for (let i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(angle);
+            p[i] = this.pts[i].rotate(pt.point.angle());
         }
         return new Polyline(p);
     }
 
     rollOpposite(s: number): Polyline {
         let pt = this.along(s + this.len / 2);
-        let angle = Math.atan2(pt.point.y, pt.point.x) - Math.PI;
         let p = new Array<Vector>(this.pts.length);
         for (let i = 0; i < this.pts.length; ++i) {
-            p[i] = this.pts[i].rotate(angle);
+            p[i] = this.pts[i].rotate(pt.point.angle() - Math.PI);
         }
         return new Polyline(p);
     }
@@ -133,11 +134,62 @@ class Polyline {
         }
         return new PointAndNormal(this.pts[a].mul(1 - f).add(this.pts[a + 1].mul(f)), this.normals[a].mul(1 - f).add(this.normals[a + 1].mul(f)).normalize());
     }
+    
     cycloid(offset: number, radius: number, angle: number): Vector {
         let base = this.along(offset);
         let center = base.point.add(base.normal.mul(radius));
         let sign = radius > 0 ? 1 : -1;
         return center.add(center.to(base.point).rotate(angle));
+    }
+
+    rollingAngle(rho: number): number {
+        let theta = 0;
+        let phi = 0;
+        for (let i = 0; i < this.pts.length-1; ++i) {
+            let p = this.pts[i];
+            let q = this.pts[i+1];
+            let r = (p.length() + q.length()) / 2;
+            let dphi = q.angle() - p.angle();
+            if (dphi < 0) dphi += 2 * Math.PI;
+            theta += dphi * r / (rho - r);
+            phi += dphi;
+        }
+        console.log(phi);
+        return theta;
+    }
+
+    rollingOpposite(targetAngle: number): Polyline {
+        let maxR = 0;
+        for (let p of this.pts) {
+            let r = p.length();
+            if (r > maxR) maxR = r;
+        }
+        let rhoSmall = maxR + 0.01;
+        let rhoBig = 10 * maxR;
+        console.log(maxR, rhoSmall, rhoBig);
+        while (rhoBig > rhoSmall + 0.01) {
+            let rho = (rhoSmall + rhoBig) / 2;
+            console.log(rho, this.rollingAngle(rho));
+            if (this.rollingAngle(rho) > targetAngle) {
+                rhoSmall = rho;
+            } else {
+                rhoBig = rho;
+            }
+        }
+        console.log(maxR, rhoSmall, rhoBig);
+        let newPts = new Array<Vector>();
+        let theta = 0;
+        for (let i = 0; ; ++i) {
+            let p = this.pts[i % this.pts.length];
+            let q = this.pts[(i+1) % this.pts.length];
+            if (theta >= 2 * Math.PI) break;
+            let r = rhoSmall - p.length();
+            newPts.push(new Vector(r * Math.cos(theta), r * Math.sin(theta)));
+            let dphi = q.angle() - p.angle();
+            if (dphi < 0) dphi += 2 * Math.PI;
+            theta += dphi * p.length() / (rhoSmall - p.length());
+        }     
+        return new Polyline(newPts);
     }
 }
 
@@ -182,14 +234,14 @@ class Gear {
         return new VectorPair(beginVec, endVec);
     }
 
-    renderTeethOptions(canvas: Canvas, opt: GearOptions, a: string, b: string): void {
+    renderTeethOptions(canvas: Canvas, opt: GearOptions, colorA: string, colorB: string): void {
         let circum = this.poly.len;
         let r = opt.radius * circum / opt.teeth / (2 * opt.angle);
         let begin = new Vector(0, 0);
         let prevEnd: Vector = null;
         for (let i = 0; i < opt.teeth; ++i) {
-            let up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, a);
-            let down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, b);
+            let up = this.tooth(canvas, i * circum / opt.teeth, 1, r, opt.angle, opt.cutout, opt.toothSteps, colorA);
+            let down = this.tooth(canvas, (i + 0.5) * circum / opt.teeth, -1, r, opt.angle, opt.cutout, opt.toothSteps, colorB);
             canvas.line(up.end, down.start, 1, "pink");
             if (prevEnd != null) {
                 canvas.line(prevEnd, up.start, 1, "pink");
@@ -276,5 +328,10 @@ function gearMain(): void {
     let c = new Canvas();
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
-    singleGear(c, small());
+    //singleGear(c, small());
+    let e = ellipse(100, 0.3, 10000);
+    new Gear(e).renderTeethOptions(c, new GearOptions(0, 0, 1, 15, Math.PI/6, 2, 0.5, 40, false), "red", "blue");
+    const f = e.rollingOpposite(2 / 3 * Math.PI);
+    //new Gear(f).render(c);
+    new Gear(f).renderTeethOptions(c, new GearOptions(0, 0, 1, 45, Math.PI/6, 2, 0.5, 40, !true), "orange", "green");
 }
