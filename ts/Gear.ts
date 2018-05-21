@@ -142,14 +142,14 @@ class Polyline {
             let r = (p.length() + q.length()) / 2;
             let dphi = q.angle() - p.angle();
             if (dphi < 0) dphi += 2 * Math.PI;
+            if (dphi > Math.PI) dphi = 2 * Math.PI - dphi;
             theta += dphi * r / (rho - r);
             phi += dphi;
         }
-        console.log(phi);
         return theta;
     }
 
-    rollingOpposite(targetAngle: number): Polyline {
+    rollingOpposite(targetAngle: number, flip: number): Polyline {
         let maxR = 0;
         for (let p of this.pts) {
             let r = p.length();
@@ -157,17 +157,15 @@ class Polyline {
         }
         let rhoSmall = maxR + 0.01;
         let rhoBig = 10 * maxR;
-        console.log(maxR, rhoSmall, rhoBig);
         while (rhoBig > rhoSmall + 0.01) {
             let rho = (rhoSmall + rhoBig) / 2;
-            console.log(rho, this.rollingAngle(rho));
             if (this.rollingAngle(rho) > targetAngle) {
                 rhoSmall = rho;
             } else {
                 rhoBig = rho;
             }
         }
-        console.log(maxR, rhoSmall, rhoBig);
+        console.log(maxR, rhoSmall, this.rollingAngle(rhoSmall));
         let newPts = new Array<Vector>();
         let theta = 0;
         for (let i = 0; ; ++i) {
@@ -175,9 +173,10 @@ class Polyline {
             let q = this.pts[(i+1) % this.pts.length];
             if (theta >= 2 * Math.PI) break;
             let r = rhoSmall - p.length();
-            newPts.push(new Vector(-r * Math.cos(theta), r * Math.sin(theta)));
+            newPts.push(new Vector(flip * r * Math.cos(theta), r * Math.sin(theta)));
             let dphi = q.angle() - p.angle();
             if (dphi < 0) dphi += 2 * Math.PI;
+            if (dphi > Math.PI) dphi = 2 * Math.PI - dphi;
             theta += dphi * p.length() / (rhoSmall - p.length());
         }     
         return new Polyline(newPts);
@@ -260,7 +259,7 @@ function animate(c: Canvas, e: Polyline, f: Polyline, s: number, eOpt: GearOptio
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     let fg = new Gear(f.roll(s, 1));
     fg.renderTeethOptions(c, fOpt, "orange", "green");    
-    setTimeout(() => animate(c, e, f, s+1, eOpt, fOpt), 10);
+    setTimeout(() => animate(c, e, f, s+5, eOpt, fOpt), 20);
 }
 
 function gearMain(): void {
@@ -268,9 +267,17 @@ function gearMain(): void {
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    let e = ellipse(100, 0.3, 10000);
-    const f = e.rollingOpposite(2 / 3 * Math.PI);
+    let e = ellipse(150, 0.25, 10000);
+    let ratF = 4;
+    let ratG = 5/4;
+    const f = e.rollingOpposite(2 / ratF * Math.PI, 1);
+    const g = f.rollingOpposite(2 / ratG * Math.PI, -1);
+    let div = 15;
+    //new Gear(e).render(c);
+    //new Gear(f).render(c);
+    //new Gear(g).render(c);
     animate(
-        c, e, f, 0, new GearOptions(15, Math.PI/6, 1.5, 1, 2, 40, true), 
-        new GearOptions(45, Math.PI/6, 1.5, 2, 1, 40, true));
+        c, f, g, 0, 
+        new GearOptions(div * ratF, Math.PI/6, 2, 1, 1.3, 40, true), 
+        new GearOptions(div * ratF * ratG, Math.PI/6, 2, 1.3, 1, 40, true));
 }

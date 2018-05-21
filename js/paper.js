@@ -214,13 +214,14 @@ var Polyline = /** @class */ (function () {
             var dphi = q.angle() - p.angle();
             if (dphi < 0)
                 dphi += 2 * Math.PI;
+            if (dphi > Math.PI)
+                dphi = 2 * Math.PI - dphi;
             theta += dphi * r / (rho - r);
             phi += dphi;
         }
-        console.log(phi);
         return theta;
     };
-    Polyline.prototype.rollingOpposite = function (targetAngle) {
+    Polyline.prototype.rollingOpposite = function (targetAngle, flip) {
         var maxR = 0;
         for (var _i = 0, _a = this.pts; _i < _a.length; _i++) {
             var p = _a[_i];
@@ -230,10 +231,8 @@ var Polyline = /** @class */ (function () {
         }
         var rhoSmall = maxR + 0.01;
         var rhoBig = 10 * maxR;
-        console.log(maxR, rhoSmall, rhoBig);
         while (rhoBig > rhoSmall + 0.01) {
             var rho = (rhoSmall + rhoBig) / 2;
-            console.log(rho, this.rollingAngle(rho));
             if (this.rollingAngle(rho) > targetAngle) {
                 rhoSmall = rho;
             }
@@ -241,7 +240,7 @@ var Polyline = /** @class */ (function () {
                 rhoBig = rho;
             }
         }
-        console.log(maxR, rhoSmall, rhoBig);
+        console.log(maxR, rhoSmall, this.rollingAngle(rhoSmall));
         var newPts = new Array();
         var theta = 0;
         for (var i = 0;; ++i) {
@@ -250,10 +249,12 @@ var Polyline = /** @class */ (function () {
             if (theta >= 2 * Math.PI)
                 break;
             var r = rhoSmall - p.length();
-            newPts.push(new Vector(-r * Math.cos(theta), r * Math.sin(theta)));
+            newPts.push(new Vector(flip * r * Math.cos(theta), r * Math.sin(theta)));
             var dphi = q.angle() - p.angle();
             if (dphi < 0)
                 dphi += 2 * Math.PI;
+            if (dphi > Math.PI)
+                dphi = 2 * Math.PI - dphi;
             theta += dphi * p.length() / (rhoSmall - p.length());
         }
         return new Polyline(newPts);
@@ -343,16 +344,23 @@ function animate(c, e, f, s, eOpt, fOpt) {
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     var fg = new Gear(f.roll(s, 1));
     fg.renderTeethOptions(c, fOpt, "orange", "green");
-    setTimeout(function () { return animate(c, e, f, s + 1, eOpt, fOpt); }, 10);
+    setTimeout(function () { return animate(c, e, f, s + 5, eOpt, fOpt); }, 20);
 }
 function gearMain() {
     var c = new Canvas();
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    var e = ellipse(100, 0.3, 10000);
-    var f = e.rollingOpposite(2 / 3 * Math.PI);
-    animate(c, e, f, 0, new GearOptions(15, Math.PI / 6, 1.5, 1, 2, 40, true), new GearOptions(45, Math.PI / 6, 1.5, 2, 1, 40, true));
+    var e = ellipse(150, 0.25, 10000);
+    var ratF = 4;
+    var ratG = 5 / 4;
+    var f = e.rollingOpposite(2 / ratF * Math.PI, 1);
+    var g = f.rollingOpposite(2 / ratG * Math.PI, -1);
+    var div = 15;
+    //new Gear(e).render(c);
+    //new Gear(f).render(c);
+    //new Gear(g).render(c);
+    animate(c, f, g, 0, new GearOptions(div * ratF, Math.PI / 6, 2, 1, 1.3, 40, true), new GearOptions(div * ratF * ratG, Math.PI / 6, 2, 1.3, 1, 40, true));
 }
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
