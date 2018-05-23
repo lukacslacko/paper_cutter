@@ -258,7 +258,7 @@ function gearLink(p: Polyline, opt: GearOptions): HTMLAnchorElement {
     let c = new Canvas(false);
     let g = new Gear(p);
     g.renderTeethOptions(c, opt, "black", "black");
-    new Gear(ellipse(1.5, 0, 100)).render(c);
+    new Gear(ellipse(3, 0, 100)).render(c);
     let dxf = new DXF();
     dxf.add(c.dxfModule);
     return dxf.downloadLink(opt.name);
@@ -268,11 +268,11 @@ function animate(c: Canvas, e: Polyline, f: Polyline, s: number, eOpt: GearOptio
     c.clear();
     let ep = e.roll(s, -1);
     let eg = new Gear(ep[0].shift(ep[1]));
-    new Gear(ellipse(1.5, 0, 100).shift(ep[1])).render(c);
+    new Gear(ellipse(3, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     let fp = f.roll(s, 1);
     let fg = new Gear(fp[0].shift(fp[1]));
-    new Gear(ellipse(1.5, 0, 100).shift(fp[1])).render(c);
+    new Gear(ellipse(3, 0, 100).shift(fp[1])).render(c);
     fg.renderTeethOptions(c, fOpt, "orange", "green");
     console.log(ep[1], fp[1]);
     //setTimeout(() => animate(c, e, f, s + 5, eOpt, fOpt), 20);
@@ -283,7 +283,7 @@ function gearMain(): void {
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    let e = ellipse(20, 0.2, 10000);
+    let e = ellipse(15, 0.2, 10000);
     let ratF = 4;
     let ratG = 5 / 4;
     const f = e.rollingOpposite(2 / ratF * Math.PI, 1);

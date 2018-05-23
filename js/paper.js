@@ -344,7 +344,7 @@ function gearLink(p, opt) {
     var c = new Canvas(false);
     var g = new Gear(p);
     g.renderTeethOptions(c, opt, "black", "black");
-    new Gear(ellipse(1.5, 0, 100)).render(c);
+    new Gear(ellipse(3, 0, 100)).render(c);
     var dxf = new DXF();
     dxf.add(c.dxfModule);
     return dxf.downloadLink(opt.name);
@@ -353,11 +353,11 @@ function animate(c, e, f, s, eOpt, fOpt) {
     c.clear();
     var ep = e.roll(s, -1);
     var eg = new Gear(ep[0].shift(ep[1]));
-    new Gear(ellipse(1.5, 0, 100).shift(ep[1])).render(c);
+    new Gear(ellipse(3, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     var fp = f.roll(s, 1);
     var fg = new Gear(fp[0].shift(fp[1]));
-    new Gear(ellipse(1.5, 0, 100).shift(fp[1])).render(c);
+    new Gear(ellipse(3, 0, 100).shift(fp[1])).render(c);
     fg.renderTeethOptions(c, fOpt, "orange", "green");
     console.log(ep[1], fp[1]);
     //setTimeout(() => animate(c, e, f, s + 5, eOpt, fOpt), 20);
@@ -367,7 +367,7 @@ function gearMain() {
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    var e = ellipse(20, 0.2, 10000);
+    var e = ellipse(15, 0.2, 10000);
     var ratF = 4;
     var ratG = 5 / 4;
     var f = e.rollingOpposite(2 / ratF * Math.PI, 1);
