@@ -41,13 +41,13 @@ class Canvas {
     h: number;
     dxfModule: DXFModule;
 
-    constructor() {
+    constructor(draw: boolean) {
         this.w = 1000;
         this.h = 1000;
         this.canvas = document.createElement("canvas");
         this.canvas.setAttribute("width", "" + this.w);
         this.canvas.setAttribute("height", "" + this.h);
-        document.getElementById("canv").appendChild(this.canvas);
+        if (draw) document.getElementById("canv").appendChild(this.canvas);
         this.c = this.canvas.getContext("2d");
         this.dxfModule = new DXFModule();
     }
@@ -125,7 +125,7 @@ class Polyline {
         }
         return new PointAndNormal(this.pts[a].mul(1 - f).add(this.pts[a + 1].mul(f)), this.normals[a].mul(1 - f).add(this.normals[a + 1].mul(f)).normalize());
     }
-    
+
     cycloid(offset: number, radius: number, angle: number): Vector {
         let base = this.along(offset);
         let center = base.point.add(base.normal.mul(radius));
@@ -136,9 +136,9 @@ class Polyline {
     rollingAngle(rho: number): number {
         let theta = 0;
         let phi = 0;
-        for (let i = 0; i < this.pts.length-1; ++i) {
+        for (let i = 0; i < this.pts.length - 1; ++i) {
             let p = this.pts[i];
-            let q = this.pts[i+1];
+            let q = this.pts[i + 1];
             let r = (p.length() + q.length()) / 2;
             let dphi = q.angle() - p.angle();
             if (dphi < 0) dphi += 2 * Math.PI;
@@ -170,7 +170,7 @@ class Polyline {
         let theta = 0;
         for (let i = 0; ; ++i) {
             let p = this.pts[i % this.pts.length];
-            let q = this.pts[(i+1) % this.pts.length];
+            let q = this.pts[(i + 1) % this.pts.length];
             if (theta >= 2 * Math.PI) break;
             let r = rhoSmall - p.length();
             newPts.push(new Vector(flip * r * Math.cos(theta), r * Math.sin(theta)));
@@ -178,7 +178,7 @@ class Polyline {
             if (dphi < 0) dphi += 2 * Math.PI;
             if (dphi > Math.PI) dphi = 2 * Math.PI - dphi;
             theta += dphi * p.length() / (rhoSmall - p.length());
-        }     
+        }
         return new Polyline(newPts);
     }
 }
@@ -186,7 +186,8 @@ class Polyline {
 class GearOptions {
     constructor(
         public teeth: number, public angle: number, public radius: number,
-        public top: number, public down: number, public toothSteps: number, public showCurve: boolean) { }
+        public top: number, public down: number, public toothSteps: number,
+        public showCurve: boolean, public name: string) { }
 }
 
 class VectorPair {
@@ -205,10 +206,10 @@ class Gear {
     tooth(canvas: Canvas, offset: number, side: number, r: number, size: number, top: number, down: number,
         steps: number, color: string): VectorPair {
         let s = offset;
-        let begin = side == -1 ? -top*steps : -down * steps;
+        let begin = side == -1 ? -top * steps : -down * steps;
         let beginVec = new Vector(0, 0);
         let endVec = new Vector(0, 0);
-        for (let i = begin; i < begin + (top+down) * steps; ++i) {
+        for (let i = begin; i < begin + (top + down) * steps; ++i) {
             let sign = side * (i > 0 ? 1 : -1);
             let a = size * i / steps;
             let b = (a + size / steps);
@@ -253,35 +254,47 @@ function ellipse(small: number, ecc: number, n: number): Polyline {
     return new Polyline(pts);
 }
 
+function gearLink(p: Polyline, opt: GearOptions): HTMLAnchorElement {
+    let c = new Canvas(false);
+    let g = new Gear(p);
+    g.renderTeethOptions(c, opt, "black", "black");
+    new Gear(ellipse(1.5, 0, 100)).render(c);
+    let dxf = new DXF();
+    dxf.add(c.dxfModule);
+    return dxf.downloadLink(opt.name);
+}
+
 function animate(c: Canvas, e: Polyline, f: Polyline, s: number, eOpt: GearOptions, fOpt: GearOptions): void {
     c.clear();
     let ep = e.roll(s, -1);
     let eg = new Gear(ep[0].shift(ep[1]));
-    new Gear(ellipse(10, 0, 100).shift(ep[1])).render(c);
+    new Gear(ellipse(1.5, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     let fp = f.roll(s, 1);
     let fg = new Gear(fp[0].shift(fp[1]));
-    new Gear(ellipse(10, 0, 100).shift(fp[1])).render(c);
-    fg.renderTeethOptions(c, fOpt, "orange", "green");    
-    setTimeout(() => animate(c, e, f, s+5, eOpt, fOpt), 20);
+    new Gear(ellipse(1.5, 0, 100).shift(fp[1])).render(c);
+    fg.renderTeethOptions(c, fOpt, "orange", "green");
+    console.log(ep[1], fp[1]);
+    //setTimeout(() => animate(c, e, f, s + 5, eOpt, fOpt), 20);
 }
 
 function gearMain(): void {
-    let c = new Canvas();
+    let c = new Canvas(true);
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    let e = ellipse(50, 0.2, 10000);
+    let e = ellipse(20, 0.2, 10000);
     let ratF = 4;
-    let ratG = 5/4;
+    let ratG = 5 / 4;
     const f = e.rollingOpposite(2 / ratF * Math.PI, 1);
     const g = f.rollingOpposite(2 / ratG * Math.PI, -1);
     let div = 8;
-    let angle = Math.PI/3;
+    let angle = Math.PI / 3;
     let extraDepth = 0.15;
     let rollingCircleRadius = 1;
-    animate(
-        c, f, g, 0, 
-        new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true), 
-        new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true));
+    const fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true, "negy");
+    const gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true, "ot");
+    animate(c, f, g, 0, fOpt, gOpt);
+    document.body.appendChild(gearLink(f, fOpt));
+    document.body.appendChild(gearLink(g, gOpt));
 }

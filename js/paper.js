@@ -118,13 +118,14 @@ var PointAndNormal = /** @class */ (function () {
     return PointAndNormal;
 }());
 var Canvas = /** @class */ (function () {
-    function Canvas() {
+    function Canvas(draw) {
         this.w = 1000;
         this.h = 1000;
         this.canvas = document.createElement("canvas");
         this.canvas.setAttribute("width", "" + this.w);
         this.canvas.setAttribute("height", "" + this.h);
-        document.getElementById("canv").appendChild(this.canvas);
+        if (draw)
+            document.getElementById("canv").appendChild(this.canvas);
         this.c = this.canvas.getContext("2d");
         this.dxfModule = new DXFModule();
     }
@@ -262,7 +263,7 @@ var Polyline = /** @class */ (function () {
     return Polyline;
 }());
 var GearOptions = /** @class */ (function () {
-    function GearOptions(teeth, angle, radius, top, down, toothSteps, showCurve) {
+    function GearOptions(teeth, angle, radius, top, down, toothSteps, showCurve, name) {
         this.teeth = teeth;
         this.angle = angle;
         this.radius = radius;
@@ -270,6 +271,7 @@ var GearOptions = /** @class */ (function () {
         this.down = down;
         this.toothSteps = toothSteps;
         this.showCurve = showCurve;
+        this.name = name;
     }
     return GearOptions;
 }());
@@ -338,24 +340,34 @@ function ellipse(small, ecc, n) {
     }
     return new Polyline(pts);
 }
+function gearLink(p, opt) {
+    var c = new Canvas(false);
+    var g = new Gear(p);
+    g.renderTeethOptions(c, opt, "black", "black");
+    new Gear(ellipse(1.5, 0, 100)).render(c);
+    var dxf = new DXF();
+    dxf.add(c.dxfModule);
+    return dxf.downloadLink(opt.name);
+}
 function animate(c, e, f, s, eOpt, fOpt) {
     c.clear();
     var ep = e.roll(s, -1);
     var eg = new Gear(ep[0].shift(ep[1]));
-    new Gear(ellipse(10, 0, 100).shift(ep[1])).render(c);
+    new Gear(ellipse(1.5, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
     var fp = f.roll(s, 1);
     var fg = new Gear(fp[0].shift(fp[1]));
-    new Gear(ellipse(10, 0, 100).shift(fp[1])).render(c);
+    new Gear(ellipse(1.5, 0, 100).shift(fp[1])).render(c);
     fg.renderTeethOptions(c, fOpt, "orange", "green");
-    setTimeout(function () { return animate(c, e, f, s + 5, eOpt, fOpt); }, 20);
+    console.log(ep[1], fp[1]);
+    //setTimeout(() => animate(c, e, f, s + 5, eOpt, fOpt), 20);
 }
 function gearMain() {
-    var c = new Canvas();
+    var c = new Canvas(true);
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    var e = ellipse(50, 0.2, 10000);
+    var e = ellipse(20, 0.2, 10000);
     var ratF = 4;
     var ratG = 5 / 4;
     var f = e.rollingOpposite(2 / ratF * Math.PI, 1);
@@ -364,7 +376,11 @@ function gearMain() {
     var angle = Math.PI / 3;
     var extraDepth = 0.15;
     var rollingCircleRadius = 1;
-    animate(c, f, g, 0, new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true), new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true));
+    var fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true, "negy");
+    var gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true, "ot");
+    animate(c, f, g, 0, fOpt, gOpt);
+    document.body.appendChild(gearLink(f, fOpt));
+    document.body.appendChild(gearLink(g, gOpt));
 }
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
