@@ -172,7 +172,7 @@ var Polyline = /** @class */ (function () {
         for (var i = 0; i < this.pts.length; ++i) {
             p[i] = this.pts[i].rotate(pt.point.angle() - this.pts[0].angle());
         }
-        return new Polyline(p).shift(new Vector(side * pt.point.length(), 0));
+        return [new Polyline(p), new Vector(side * pt.point.length(), 0)];
     };
     Polyline.prototype.along = function (s) {
         if (s < 0)
@@ -340,9 +340,13 @@ function ellipse(small, ecc, n) {
 }
 function animate(c, e, f, s, eOpt, fOpt) {
     c.clear();
-    var eg = new Gear(e.roll(s, -1));
+    var ep = e.roll(s, -1);
+    var eg = new Gear(ep[0].shift(ep[1]));
+    new Gear(ellipse(10, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
-    var fg = new Gear(f.roll(s, 1));
+    var fp = f.roll(s, 1);
+    var fg = new Gear(fp[0].shift(fp[1]));
+    new Gear(ellipse(10, 0, 100).shift(fp[1])).render(c);
     fg.renderTeethOptions(c, fOpt, "orange", "green");
     setTimeout(function () { return animate(c, e, f, s + 5, eOpt, fOpt); }, 20);
 }

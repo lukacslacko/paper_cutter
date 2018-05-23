@@ -95,13 +95,13 @@ class Polyline {
         return new Polyline(p);
     }
 
-    roll(s: number, side: number): Polyline {
+    roll(s: number, side: number): [Polyline, Vector] {
         let pt = this.along(s);
         let p = new Array<Vector>(this.pts.length);
         for (let i = 0; i < this.pts.length; ++i) {
             p[i] = this.pts[i].rotate(pt.point.angle() - this.pts[0].angle());
         }
-        return new Polyline(p).shift(new Vector(side * pt.point.length(), 0));
+        return [new Polyline(p), new Vector(side * pt.point.length(), 0)];
     }
 
     along(s: number): PointAndNormal {
@@ -255,9 +255,13 @@ function ellipse(small: number, ecc: number, n: number): Polyline {
 
 function animate(c: Canvas, e: Polyline, f: Polyline, s: number, eOpt: GearOptions, fOpt: GearOptions): void {
     c.clear();
-    let eg = new Gear(e.roll(s, -1));
+    let ep = e.roll(s, -1);
+    let eg = new Gear(ep[0].shift(ep[1]));
+    new Gear(ellipse(10, 0, 100).shift(ep[1])).render(c);
     eg.renderTeethOptions(c, eOpt, "red", "blue");
-    let fg = new Gear(f.roll(s, 1));
+    let fp = f.roll(s, 1);
+    let fg = new Gear(fp[0].shift(fp[1]));
+    new Gear(ellipse(10, 0, 100).shift(fp[1])).render(c);
     fg.renderTeethOptions(c, fOpt, "orange", "green");    
     setTimeout(() => animate(c, e, f, s+5, eOpt, fOpt), 20);
 }
