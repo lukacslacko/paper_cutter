@@ -292,8 +292,8 @@ function gearMain(): void {
     let angle = Math.PI / 3;
     let extraDepth = 0.15;
     let rollingCircleRadius = 1;
-    const fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true, "negy");
-    const gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true, "ot");
+    const fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 20, true, "negy.dxf");
+    const gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 20, true, "ot.dxf");
     animate(c, f, g, 0, fOpt, gOpt);
     document.body.appendChild(gearLink(f, fOpt));
     document.body.appendChild(gearLink(g, gOpt));

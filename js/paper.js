@@ -376,8 +376,8 @@ function gearMain() {
     var angle = Math.PI / 3;
     var extraDepth = 0.15;
     var rollingCircleRadius = 1;
-    var fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true, "negy");
-    var gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true, "ot");
+    var fOpt = new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 20, true, "negy.dxf");
+    var gOpt = new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 20, true, "ot.dxf");
     animate(c, f, g, 0, fOpt, gOpt);
     document.body.appendChild(gearLink(f, fOpt));
     document.body.appendChild(gearLink(g, gOpt));
