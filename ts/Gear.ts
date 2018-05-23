@@ -267,17 +267,17 @@ function gearMain(): void {
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    let e = ellipse(150, 0.25, 10000);
+    let e = ellipse(50, 0.2, 10000);
     let ratF = 4;
     let ratG = 5/4;
     const f = e.rollingOpposite(2 / ratF * Math.PI, 1);
     const g = f.rollingOpposite(2 / ratG * Math.PI, -1);
-    let div = 15;
-    //new Gear(e).render(c);
-    //new Gear(f).render(c);
-    //new Gear(g).render(c);
+    let div = 8;
+    let angle = Math.PI/3;
+    let extraDepth = 0.15;
+    let rollingCircleRadius = 1;
     animate(
         c, f, g, 0, 
-        new GearOptions(div * ratF, Math.PI/6, 2, 1, 1.3, 40, true), 
-        new GearOptions(div * ratF * ratG, Math.PI/6, 2, 1.3, 1, 40, true));
+        new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true), 
+        new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true));
 }

@@ -351,16 +351,16 @@ function gearMain() {
     //gearArcOptions(c, 0, dense());
     //gearStepOptions(c, 0, denseCircular());
     //singleGear(c, small());
-    var e = ellipse(150, 0.25, 10000);
+    var e = ellipse(50, 0.2, 10000);
     var ratF = 4;
     var ratG = 5 / 4;
     var f = e.rollingOpposite(2 / ratF * Math.PI, 1);
     var g = f.rollingOpposite(2 / ratG * Math.PI, -1);
-    var div = 15;
-    //new Gear(e).render(c);
-    //new Gear(f).render(c);
-    //new Gear(g).render(c);
-    animate(c, f, g, 0, new GearOptions(div * ratF, Math.PI / 6, 2, 1, 1.3, 40, true), new GearOptions(div * ratF * ratG, Math.PI / 6, 2, 1.3, 1, 40, true));
+    var div = 8;
+    var angle = Math.PI / 3;
+    var extraDepth = 0.15;
+    var rollingCircleRadius = 1;
+    animate(c, f, g, 0, new GearOptions(div * ratF, angle, rollingCircleRadius, 1, 1 + extraDepth, 40, true), new GearOptions(div * ratF * ratG, angle, rollingCircleRadius, 1 + extraDepth, 1, 40, true));
 }
 var Paper = /** @class */ (function () {
     function Paper(width, height, left_margin, right_margin, top_margin, bottom_margin, gap) {
