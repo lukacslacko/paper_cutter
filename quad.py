@@ -88,12 +88,12 @@ def halfquad(p, q, r, s, rho, d, t):
     arc(plus(r, mul(-(rho + rr), c)), mul((d+t)/2, c), -pi, -pi/2)
     arc(r, mul(rho, c), 0, pi)
 
-def sarok(p, q, r, rho, d, t):
+def sarok(p, q, r, rho, d, t, behorpasztas=1):
     b = rot(norm(vec(p, q)))    
     bb = rot(b)
     rr = (d-t)/2
 
-    line(plus(midpoint(p, q), mul(-rho, b)), plus(q, mul(rho, b)))
+    line(plus(midpoint(p, q), mul(-rho*behorpasztas, b)), plus(q, mul(rho, b)))
     arc(q, mul(rho, b), -pi, 0, 8)
     line(plus(q, mul(-rho, b)), plus(plus(q, mul(-rho, b)), mul(t, bb)))
     arc(plus(mul(t, bb), plus(q, mul(-(rho + rr), b))), mul(rr, b), 0, pi/2)
@@ -101,13 +101,13 @@ def sarok(p, q, r, rho, d, t):
     L = l(vec(q, r)) / 2
     alpha = asin((d + 2*rho) / L)
     qq = arc(q, mul(-(rho+d), b), 0, pi - angle(p, q, r) + alpha)    
-    line(qq, plus(midpoint(q,r), mul(-rho, rot(norm(vec(q, r))))))    
+    line(qq, plus(midpoint(q,r), mul(-rho*behorpasztas, rot(norm(vec(q, r))))))    
 
-def face(vs, rho, d, t):
+def face(vs, rho, d, t, behorpasztas=1):
     for i in range(len(vs)):
         j = (i+1) % len(vs)
         k = (j+1) % len(vs)
-        sarok(vs[i], vs[j], vs[k], rho, d, t)
+        sarok(vs[i], vs[j], vs[k], rho, d, t, behorpasztas)
     
 def quad(p, q, r, s, rho, d, t):
     halfquad(p, q, r, s, rho, d, t)
@@ -160,6 +160,16 @@ def pentagon(edge):
     r = edge / 2 / sin(pi / 5)
     return[[r * sin(2 * i * pi / 5), r * cos(2 * i * pi / 5)] for i in range(5,0,-1)]
 
+def penrose_thin(edge):
+    x = edge * sin(pi / 10)
+    y = edge * cos(pi / 10)
+    return[[x,0], [0,y], [-x,0], [0,-y]]
+
+def penrose_thick(edge):
+    x = edge * sin(pi / 5)
+    y = edge * cos(pi / 5)
+    return[[x,0], [0,y], [-x,0], [0,-y]]
+
 #p, q, r, s = deltoidal_hexecontahedron(50)
 edge = 70
 #p, q, r, s = rhombic_enneacontahedron_thin(edge)
@@ -177,5 +187,11 @@ header()
 #hex(a, b, c, d, e, f, rho, dd, t)
 #face(square(edge), rho, dd, t)
 #face(triangle(edge), rho, dd, t)
-face(pentagon(edge), rho, dd, t)
+#face(pentagon(edge), rho, dd, t)
+#arc([0,0], [15,0], 0, 2*pi, 32)
+poly = penrose_thin(50)
+face(poly, 0.5, 10, 3, -1)
+#for i in range(len(poly)):
+#    j = (i+1) % len(poly)
+#    line(poly[i], poly[j])
 footer()
