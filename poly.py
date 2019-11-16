@@ -1,4 +1,4 @@
-from math import cos, sin, atan, pi, asin, sqrt, tan
+from math import cos, sin, atan, acos, pi, asin, sqrt, tan
 
 def line(P, Q):
     print(0)
@@ -37,26 +37,63 @@ def end(d, alpha, g, w):
     z = rho + g/2
     pts += arc([z, 0], rho, 0, -pi)
     pts += arc([0,0], g/2, 0, pi)
-    pts += arc([z, 0], rho + g, -pi, -pi/2)
-    zz = d/2-z
-    pts += arc([z, -rho-g-zz], zz, pi/2, 0, True)
+    if alpha <= 2*pi/4:
+        pts += arc([z, 0], rho + g, -pi, -pi/2)
+        zz = d/2-z
+        pts += arc([z, -rho-g-zz], zz, pi/2, 0, True)
+    else:
+        pts += arc([z, 0], rho + g, -pi, -acos((d/2-z)/(rho+g)), True)
     h = d/(2*tan(alpha/2))
     y = g/2*cos(alpha/2)
-    R = d/2 / sin(alpha/2) + g/2
-    beta = atan(d/2 / (h+y))
+    R = d/2 / sin(alpha/2)
+    if alpha <= 2*pi/4:
+        R += g/2
+    beta = asin(d/2 / R)
     delta = asin(d/2/(R+w))
-    gamma = -pi/2+beta+alpha/2
-    pts += arc([0,0], R, -pi/2+beta, gamma)
-    pts += arc([(R+w/2)*cos(gamma), (R+w/2)*sin(gamma)], w/2, pi+gamma, gamma)
-    pts += arc([0,0], R+w, gamma, -pi/2+delta, True)
+    gamma = -pi/2+beta+alpha/3
+    poc = arc([0,0], R, -pi/2+beta, gamma)
+    poc += arc([(R+w/2)*cos(gamma), (R+w/2)*sin(gamma)], w/2, pi+gamma, gamma)
+    poc += arc([0,0], R+w, gamma, -pi/2+delta, True)
+    v = []
+    poc.reverse()
+    for p in poc:
+        v.append([-p[0], p[1]])
+    v += pts
+    pts = list(v)
     return pts
 
-header()
-v = end(16, 2*pi/5, 1, 8)
-w = list(v)
-for p in v:
-    w.append([-p[0], -p[1]-100])
+def edge(a, d, w, g, alpha, beta):
+    v = end(d, alpha, g, w)
+    vv = end(d, beta, g, w)
+    w = list(v)
+    for p in vv:
+        w.append([-p[0], -p[1]-a])
+    for i in range(len(w)):
+        line(w[i], w[(i+1)%len(w)])
+    
 
-for i in range(len(w)):
-    line(w[i], w[(i+1)%len(w)])
+def pentakis_dodeca_long():
+    v = end(18, 2*pi/6, 2, 6)
+    w = list(v)
+    for p in v:
+        w.append([-p[0], -p[1]-185.41])
+
+    for i in range(len(w)):
+        line(w[i], w[(i+1)%len(w)])
+
+def pentakis_dodeca_short():
+    v = end(18, 2*pi/6, 2, 6)
+    vv = end(18, 2*pi/5, 2, 6)
+    w = list(v)
+    for p in vv:
+        w.append([-p[0], -p[1]-164.47])
+
+    for i in range(len(w)):
+        line(w[i], w[(i+1)%len(w)])
+
+def rhombic_triaconta():
+    edge(150, 18, 6, 1, 2*pi/3, 2*pi/5)
+
+header()
+rhombic_triaconta()
 footer()
