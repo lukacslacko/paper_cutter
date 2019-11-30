@@ -46,8 +46,8 @@ def end(d, alpha, g, w):
     h = d/(2*tan(alpha/2))
     y = g/2*cos(alpha/2)
     R = d/2 / sin(alpha/2)
-    if alpha <= 2*pi/4:
-        R += g/2
+    #if alpha <= 2*pi/4:
+    #    R += g/2
     beta = asin(d/2 / R)
     delta = asin(d/2/(R+w))
     gamma = -pi/2+beta+alpha/3
@@ -94,6 +94,15 @@ def pentakis_dodeca_short():
 def rhombic_triaconta():
     edge(150, 18, 6, 1, 2*pi/3, 2*pi/5)
 
+def jatI_short():
+    edge(81.1, 40, 6, 1, 2*pi/3, 2*pi/4)
+
+def jatI_middle():
+    edge(139.5, 40, 6, 1, 2*pi/4, 2*pi/5)
+
+def jatI_long():
+    edge(165, 40, 6, 1, 2*pi/4, 2*pi/6)
+
 header()
-rhombic_triaconta()
+jatI_long()
 footer()
