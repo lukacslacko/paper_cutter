@@ -70,7 +70,24 @@ def edge(a, d, w, g, alpha, beta):
         w.append([-p[0], -p[1]-a])
     for i in range(len(w)):
         line(w[i], w[(i+1)%len(w)])
-    
+
+def rot(p, alpha):
+    return [p[0]*cos(alpha)-p[1]*sin(alpha), p[0]*sin(alpha)+p[1]*cos(alpha)]
+
+def haromagu(a, d, w, g, alpha):
+    vv = end(d, alpha, g, w)
+    v = [[p[0], p[1]+a] for p in vv]
+    pts = []
+    pts += v
+    pts.append([d/2, d*sqrt(3)/6])
+    for p in v:
+        pts.append(rot(p, -2*pi/3))
+    pts.append([0, -d*sqrt(3)/3])
+    for p in v:
+        pts.append(rot(p, 2*pi/3))
+    pts.append([-d/2, d*sqrt(3)/6])
+    for i in range(len(pts)):
+        line(pts[i], pts[(i+1)%len(pts)])
 
 def pentakis_dodeca_long():
     v = end(18, 2*pi/6, 2, 6)
@@ -95,7 +112,8 @@ def rhombic_triaconta():
     edge(150, 18, 6, 1, 2*pi/3, 2*pi/5)
 
 def jatI_short():
-    edge(81.1, 40, 6, 1, 2*pi/3, 2*pi/4)
+    haromagu(81.1, 40, 6, 1, 2*pi/4)
+    #edge(81.1, 40, 6, 1, 2*pi/3, 2*pi/4)
 
 def jatI_middle():
     edge(139.5, 40, 6, 1, 2*pi/4, 2*pi/5)
@@ -104,5 +122,5 @@ def jatI_long():
     edge(165, 40, 6, 1, 2*pi/4, 2*pi/6)
 
 header()
-jatI_long()
+jatI_short()
 footer()
